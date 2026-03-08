@@ -1,0 +1,118 @@
+:root {
+    /* Color Palette */
+    --bg-color: #000000;
+    --primary-color: #99FF00; /* Neon Lime */
+    --secondary-bg: #0a0a0a;
+    --card-bg: #111111;
+    --text-main: #ffffff;
+    --text-muted: #a0a0a0;
+    --accent-glow: rgba(153, 255, 0, 0.2);
+    
+    /* Spacing & Transitions */
+    --section-padding: 80px 5%;
+    --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    --border-radius: 4px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    overflow-x: hidden;
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4 {
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+
+.section-padding {
+    padding: var(--section-padding);
+}
+
+/* Animations Helpers */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+/* Fixed Actions */
+.fixed-actions {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 1000;
+}
+
+.whatsapp-btn, .back-to-top {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    transition: var(--transition-smooth);
+}
+
+.whatsapp-btn {
+    background-color: #25D366;
+    color: white;
+}
+
+.whatsapp-btn:hover {
+    transform: scale(1.1) translateY(-5px);
+    box-shadow: 0 15px 40px rgba(37, 211, 102, 0.3);
+}
+
+.back-to-top {
+    background-color: var(--primary-color);
+    color: black;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+}
+
+.back-to-top.visible {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateY(0);
+}
+
+.back-to-top:hover {
+    transform: scale(1.1) translateY(-5px);
+    background-color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    :root {
+        --section-padding: 50px 5%;
+    }
+    
+    .fixed-actions {
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .whatsapp-btn, .back-to-top {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+}

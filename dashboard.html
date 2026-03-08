@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Elite | Suplementos Fitness VIP</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="dashboard-body">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="logo-text">FITNESS<span class="highlight">VIP</span></span>
+            <p class="role">Admin Panel</p>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
+            <a href="#inventory-section"><i class="fas fa-boxes-stacked"></i> Inventario</a>
+            <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+        </nav>
+    </aside>
+
+    <!-- Main Dashboard Content -->
+    <main class="dashboard-main">
+        <header class="dashboard-header">
+            <div class="welcome">
+                <h1>Bienvenido, <span class="green">Administrador</span></h1>
+                <p>Resumen general de tu negocio hoy.</p>
+            </div>
+            <div class="header-actions">
+                <button class="add-btn" onclick="toggleModal(true)"><i class="fas fa-plus"></i> Añadir Producto</button>
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon green-bg"><i class="fas fa-coins"></i></div>
+                <div class="stat-info">
+                    <h3>Ventas Totales</h3>
+                    <p class="stat-value" id="total-sales">$0.00</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon blue-bg"><i class="fas fa-box"></i></div>
+                <div class="stat-info">
+                    <h3>Productos</h3>
+                    <p class="stat-value" id="total-products">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red-bg"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="stat-info">
+                    <h3>Stock Bajo</h3>
+                    <p class="stat-value" id="low-stock-count">0</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Notifications Area -->
+        <div id="notifications-area" class="notifications"></div>
+
+        <!-- Inventory Section -->
+        <section id="inventory-section" class="inventory-card">
+            <div class="card-header">
+                <h2>Control de <span class="green">Inventario</span></h2>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-inventory" placeholder="Buscar producto...">
+                </div>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashboard-inventory-body">
+                        <!-- Sincronizado con Firestore -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Add Product Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Añadir <span class="green">Nuevo Producto</span></h2>
+                <button class="close-modal" onclick="toggleModal(false)">&times;</button>
+            </div>
+            <form id="add-product-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombre del Producto</label>
+                        <input type="text" id="p-name" placeholder="Ej: Whey Protein Elite" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select id="p-category">
+                            <option value="Proteínas">Proteínas</option>
+                            <option value="Creatinas">Creatinas</option>
+                            <option value="Pre-entreno">Pre-entreno</option>
+                            <option value="Aminoácidos">Aminoácidos</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Precio ($)</label>
+                        <input type="number" id="p-price" step="0.01" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Stock Inicial</label>
+                        <input type="number" id="p-stock" placeholder="10" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Sabores (Separados por comas)</label>
+                        <input type="text" id="p-flavors" placeholder="Vainilla, Chocolate, Fresa">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Descripción del Producto</label>
+                        <textarea id="p-description" rows="3"
+                            placeholder="Escribe los beneficios, modo de uso, etc."></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Galería de Imágenes (URLs, una por línea)</label>
+                        <textarea id="p-images" rows="4" placeholder="https://imagen1.jpg&#10;https://imagen2.jpg"
+                            required></textarea>
+                    </div>
+                </div>
+                <button type="submit" class="save-btn">Guardar en Firestore</button>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .dashboard-body {
+            background-color: #050505;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: #000;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .sidebar-header {
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        .role {
+            font-size: 10px;
+            color: var(--primary-color);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-top: 5px;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sidebar-nav a {
+            padding: 15px 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: var(--transition-smooth);
+        }
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            background: rgba(153, 255, 0, 0.05);
+            color: white;
+        }
+
+        .sidebar-nav a.active i {
+            color: var(--primary-color);
+        }
+
+        /* Main Content */
+        .dashboard-main {
+            flex: 1;
+            margin-left: 280px;
+            padding: 40px 5%;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .welcome h1 {
+            font-size: 2rem;
+        }
+
+        .welcome p {
+            color: var(--text-muted);
+        }
+
+        .add-btn {
+            background: var(--primary-color);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .add-btn:hover {
+            background: white;
+            transform: translateY(-3px);
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .green-bg {
+            background: rgba(153, 255, 0, 0.1);
+            color: var(--primary-color);
+        }
+
+        .blue-bg {
+            background: rgba(0, 153, 255, 0.1);
+            color: #0099ff;
+        }
+
+        .red-bg {
+            background: rgba(255, 68, 68, 0.1);
+            color: #ff4444;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 900;
+            margin-top: 5px;
+        }
+
+        /* Inventory Table */
+        .inventory-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 18px;
+            color: var(--text-muted);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 10px;
+            outline: none;
+        }
+
+        .table-container {
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 15px;
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 20px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .status-tag {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .stock-ok {
+            background: rgba(153, 255, 0, 0.1);
+            color: var(--primary-color);
+        }
+
+        .stock-low {
+            background: rgba(255, 68, 68, 0.1);
+            color: #ff4444;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .action-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .delete-btn:hover {
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: #111;
+            margin: 5% auto;
+            padding: 40px;
+            border-radius: 20px;
+            width: 600px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 30px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 10px;
+            outline: none;
+            transition: var(--transition-smooth);
+            font-family: inherit;
+            resize: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary-color);
+            background: rgba(153, 255, 0, 0.05);
+            box-shadow: 0 0 15px rgba(153, 255, 0, 0.1);
+        }
+
+        select option {
+            background: #111;
+            color: white;
+        }
+
+        .save-btn {
+            width: 100%;
+            margin-top: 30px;
+            padding: 18px;
+            background: var(--primary-color);
+            border: none;
+            font-weight: 900;
+            border-radius: 10px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: var(--transition-smooth);
+        }
+
+        .save-btn:hover {
+            background: white;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+                padding: 20px 10px;
+            }
+
+            .sidebar-header span,
+            .sidebar-header p,
+            .sidebar-nav a span {
+                display: none;
+            }
+
+            .dashboard-main {
+                margin-left: 80px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module" src="js/admin/dashboard.js"></script>
+</body>
+
+</html>
