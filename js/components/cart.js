@@ -6,7 +6,11 @@
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
 export function addToCart(product) {
-    const existing = cart.find(item => item.id === product.id && item.selectedFlavor === product.selectedFlavor);
+    const existing = cart.find(item =>
+        item.id === product.id &&
+        item.selectedFlavor === product.selectedFlavor &&
+        item.selectedSize === product.selectedSize
+    );
 
     if (existing) {
         existing.qty += product.qty;

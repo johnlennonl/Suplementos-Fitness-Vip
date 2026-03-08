@@ -77,8 +77,11 @@ export function showProductDetail(product) {
 
                 <div class="pm-section">
                     <span class="pm-label">Tamaño</span>
-                    <select class="pm-select">
-                        <option>Tub - 30 porciones</option>
+                    <select class="pm-select" id="pm-size-select">
+                        ${product.sizes && product.sizes.length > 0
+            ? product.sizes.map(s => `<option value="${s.price}">${s.label}</option>`).join("")
+            : `<option value="${product.price}">Porción Única</option>`
+        }
                     </select>
                 </div>
 
@@ -135,9 +138,12 @@ function setupDetailEvents(product, images) {
     const addToCartBtn = document.getElementById("add-to-cart-action");
     const btnTotalPrice = document.getElementById("btn-total-price");
     const flavorSelect = document.getElementById("pm-flavor-select");
+    const sizeSelect = document.getElementById("pm-size-select");
+    const mainPriceLabel = document.querySelector(".pm-info .pm-price");
+    const oldPriceLabel = document.querySelector(".pm-info .pm-price-old");
 
     let currentQty = 1;
-    const basePrice = parseFloat(product.price);
+    let currentBasePrice = sizeSelect ? parseFloat(sizeSelect.value) : parseFloat(product.price);
 
     closeBtn.addEventListener("click", () => {
         gsap.to(".pm-container", {
@@ -170,8 +176,23 @@ function setupDetailEvents(product, images) {
     });
 
     const updatePrice = () => {
-        btnTotalPrice.innerText = (basePrice * currentQty).toFixed(2);
+        const total = (currentBasePrice * currentQty).toFixed(2);
+        btnTotalPrice.innerText = total;
+        if (mainPriceLabel) {
+            mainPriceLabel.innerText = `$${currentBasePrice.toFixed(2)}`;
+        }
+        if (oldPriceLabel) {
+            const oldVal = (currentBasePrice * 1.2).toFixed(2);
+            oldPriceLabel.innerText = `$${oldVal}`;
+        }
     };
+
+    if (sizeSelect) {
+        sizeSelect.addEventListener("change", (e) => {
+            currentBasePrice = parseFloat(e.target.value);
+            updatePrice();
+        });
+    }
 
     qtyMinus.addEventListener("click", () => {
         if (currentQty > 1) {
@@ -187,12 +208,19 @@ function setupDetailEvents(product, images) {
         updatePrice();
     });
 
+    // Carga inicial de precio
+    updatePrice();
+
     addToCartBtn.addEventListener("click", () => {
         const selectedFlavor = flavorSelect ? flavorSelect.value : null;
+        const selectedSize = sizeSelect ? sizeSelect.options[sizeSelect.selectedIndex].text : "Porción Única";
+
         addToCart({
             ...product,
+            price: currentBasePrice,
             qty: currentQty,
             selectedFlavor: selectedFlavor,
+            selectedSize: selectedSize
         });
         closeBtn.click();
     });

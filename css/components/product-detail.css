@@ -141,10 +141,10 @@
 }
 
 .pm-desc {
-    color: #070707;
+    color: white;
     font-size: 14px;
     line-height: 1.6;
-    background: #D6D6D6;
+    background: rgba(247, 247, 247, 0.027);
     padding: 5px 10px;
     display: inline-block;
     width: fit-content;

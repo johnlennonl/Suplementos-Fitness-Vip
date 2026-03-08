@@ -12,11 +12,6 @@
 </head>
 
 <body class="dashboard-body">
-    <!-- Background Animation -->
-    <div class="bg-animation">
-        <div class="bg-glow"></div>
-    </div>
-
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -133,6 +128,15 @@
                     <div class="form-group full-width">
                         <label>Sabores (Separados por comas)</label>
                         <input type="text" id="p-flavors" placeholder="Vainilla, Chocolate, Fresa">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Tamaños / Porciones y Precios</label>
+                        <div id="sizes-container">
+                            <!-- Las filas se añadirán dinámicamente aquí -->
+                        </div>
+                        <button type="button" id="add-size-btn" class="add-row-btn">
+                            <i class="fas fa-plus"></i> Añadir Tamaño y Precio
+                        </button>
                     </div>
                     <div class="form-group full-width">
                         <label>Descripción del Producto</label>
@@ -456,11 +460,33 @@
 
         .modal-content {
             background: #111;
-            margin: 5% auto;
+            margin: 2% auto;
             padding: 40px;
             border-radius: 20px;
-            width: 600px;
+            width: 650px;
             border: 1px solid rgba(255, 255, 255, 0.05);
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Custom Scrollbar for Modal */
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: rgba(153, 255, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
         }
 
         .modal-header {
@@ -542,6 +568,84 @@
             background: white;
             transform: translateY(-3px);
             box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Size Rows Styling */
+        .size-row {
+            display: grid;
+            grid-template-columns: 1fr 140px 45px;
+            gap: 15px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 12px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .size-row input {
+            margin-bottom: 0 !important;
+        }
+
+        .remove-size-btn {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .remove-size-btn:hover {
+            background: #ff4444;
+            color: white;
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+            transform: scale(1.05);
+        }
+
+        .add-row-btn {
+            background: rgba(153, 255, 0, 0.1);
+            color: var(--primary-color);
+            border: 2px dashed var(--primary-color);
+            padding: 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .add-row-btn:hover {
+            background: var(--primary-color);
+            color: black;
+            border-style: solid;
+            box-shadow: 0 0 20px rgba(153, 255, 0, 0.2);
         }
 
         @media (max-width: 1024px) {

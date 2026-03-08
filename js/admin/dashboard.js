@@ -39,7 +39,29 @@ if (logoutBtn) {
 function initDashboard() {
     loadInventory();
     setupAddForm();
+    setupSizeRowLogic();
 }
+
+function setupSizeRowLogic() {
+    const addBtn = document.getElementById('add-size-btn');
+    if (addBtn) {
+        addBtn.addEventListener('click', () => addSizeRow());
+    }
+}
+
+window.addSizeRow = function (label = '', price = '') {
+    const container = document.getElementById('sizes-container');
+    const row = document.createElement('div');
+    row.className = 'size-row';
+    row.innerHTML = `
+        <input type="text" class="size-label" placeholder="Nombre (ej: 60 Serv)" value="${label}" required>
+        <input type="number" step="0.01" class="size-price" placeholder="Precio" value="${price}" required>
+        <button type="button" class="remove-size-btn" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(row);
+};
 
 function loadInventory() {
     const q = query(collection(db, "products"), orderBy("name", "asc"));
@@ -121,6 +143,15 @@ function setupAddForm() {
         const flavorsRaw = document.getElementById('p-flavors').value;
         const flavors = flavorsRaw ? flavorsRaw.split(',').map(f => f.trim()).filter(f => f !== "") : [];
 
+        const mainPrice = parseFloat(document.getElementById('p-price').value) || 0;
+
+        // Procesar tamaños/porciones desde las filas dinámicas
+        const sizeRows = document.querySelectorAll('.size-row');
+        const sizes = Array.from(sizeRows).map(row => ({
+            label: row.querySelector('.size-label').value.trim(),
+            price: parseFloat(row.querySelector('.size-price').value) || mainPrice
+        })).filter(s => s.label !== "");
+
         // Procesar imágenes como array (una por línea)
         const imagesRaw = document.getElementById('p-images').value;
         const images = imagesRaw.split('\n').map(i => i.trim()).filter(i => i !== "");
@@ -131,6 +162,7 @@ function setupAddForm() {
             price: parseFloat(document.getElementById('p-price').value),
             stock: parseInt(document.getElementById('p-stock').value),
             flavors: flavors,
+            sizes: sizes,
             description: document.getElementById('p-description').value,
             images: images,
             img: images[0] || ""
@@ -185,6 +217,7 @@ window.toggleModal = function (show) {
     } else {
         modal.style.display = 'none';
         document.getElementById('add-product-form').reset();
+        document.getElementById('sizes-container').innerHTML = '';
     }
 };
 
@@ -206,6 +239,14 @@ window.openEditModal = async function (id) {
             document.getElementById('p-price').value = p.price;
             document.getElementById('p-stock').value = p.stock;
             document.getElementById('p-flavors').value = p.flavors ? p.flavors.join(', ') : '';
+
+            // Cargar tamaños en filas
+            const container = document.getElementById('sizes-container');
+            container.innerHTML = '';
+            if (p.sizes && p.sizes.length > 0) {
+                p.sizes.forEach(s => addSizeRow(s.label, s.price));
+            }
+
             document.getElementById('p-description').value = p.description || '';
             document.getElementById('p-images').value = p.images ? p.images.join('\n') : (p.img || '');
 

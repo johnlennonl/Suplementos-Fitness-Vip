@@ -8,6 +8,7 @@ import { initHero } from './components/hero.js';
 import { initProducts } from './components/products.js';
 import { initCart } from './components/cart.js';
 import { initFooter } from './components/footer.js';
+import { initContactAnimations } from './components/contact.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Register ScrollTrigger
@@ -19,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initProducts();
     initCart();
     initFooter();
+    initContactAnimations();
 
     // Global Scroll Functionalities
     handleGlobalScroll();
