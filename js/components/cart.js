@@ -16,7 +16,28 @@ export function addToCart(product) {
 
     saveCart();
     updateCartUI();
-    toggleCart(true);
+
+    // Animation instead of opening modal immediately
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: '¡Producto añadido al carrito!',
+            showConfirmButton: false,
+            timer: 2000,
+            background: '#111',
+            color: '#fff',
+            iconColor: '#99ff00'
+        });
+    }
+
+    if (typeof gsap !== 'undefined') {
+        gsap.fromTo('.cart-icon-nav',
+            { scale: 1.5, color: '#99ff00' },
+            { scale: 1, color: '#ffffff', duration: 0.5, ease: 'back.out(1.7)' }
+        );
+    }
 }
 
 function saveCart() {
