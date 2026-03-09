@@ -183,6 +183,7 @@ function setupStyles() {
             border: 1px solid rgba(255,255,255,0.05);
             transition: var(--transition-smooth);
             position: relative;
+            cursor: pointer;
         }
 
         .product-card:hover {

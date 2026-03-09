@@ -1,7 +1,4 @@
-/**
- * Cart Component
- * Suplementos Fitness VIP
- */
+import { openReviewModal } from './reviews.js';
 
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
@@ -190,21 +187,32 @@ function sendWhatsAppOrder() {
             color: '#fff'
         }).then((result) => {
             if (result.isConfirmed) {
+                const itemsForReview = [...cart];
                 cart = [];
                 saveCart();
                 updateCartUI();
                 toggleCart(false);
                 window.open(whatsappUrl, '_blank');
+
+                // Show review modal after a short delay
+                setTimeout(() => {
+                    openReviewModal(itemsForReview);
+                }, 2000);
             }
         });
     } else {
         // Fallback en caso de que Swal no esté cargado
         if (confirm("¡Completa tu compra con nosotros! Serás redirigido a WhatsApp para finalizar tu pedido.")) {
+            const itemsForReview = [...cart];
             cart = [];
             saveCart();
             updateCartUI();
             toggleCart(false);
             window.open(whatsappUrl, '_blank');
+
+            setTimeout(() => {
+                openReviewModal(itemsForReview);
+            }, 2000);
         }
     }
 }

@@ -9,6 +9,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Charts & Excel Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 
 <body class="dashboard-body">
@@ -16,7 +19,7 @@
     <aside class="sidebar">
         <div class="sidebar-header">
             <span class="logo-text">FITNESS<span class="highlight">VIP</span></span>
-            <p class="role">Admin Panel</p>
+            <p class="role">Panel Administrativo</p>
         </div>
         <nav class="sidebar-nav" id="dashboard-menu">
             <a href="#" class="active" data-section="inventory"><i class="fas fa-boxes-stacked"></i> Inventario</a>
@@ -39,8 +42,24 @@
             </div>
         </header>
 
-        <!-- Dynamic Sections -->
+        <!-- Inventory Section (Stats + Charts + Table) -->
         <div id="section-inventory">
+            <!-- Critical Stock Alerts (Hidden by default) -->
+            <section id="critical-stock-alert" style="display: none; margin-bottom: 30px;">
+                <div class="alert-card"
+                    style="background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.3); padding: 20px; border-radius: 15px; display: flex; align-items: center; gap: 20px;">
+                    <div class="alert-icon"
+                        style="background: #ff4444; color: white; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <h3 style="color: #ff4444; margin-bottom: 5px; font-size: 16px;">STOCK CRÍTICO DETECTADO</h3>
+                        <p id="critical-stock-msg" style="color: #aaa; font-size: 14px;">Hay productos con 0 o muy poco
+                            stock. Revisa el inventario.</p>
+                    </div>
+                </div>
+            </section>
+
             <!-- Stats Grid -->
             <section class="stats-grid">
                 <div class="stat-card">
@@ -62,6 +81,32 @@
                     <div class="stat-info">
                         <h3>Stock Bajo</h3>
                         <p class="stat-value" id="low-stock-count">0</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics Grid: Charts & Top Products -->
+            <section class="analytics-grid"
+                style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-top: 30px; margin-bottom: 30px;">
+                <!-- Revenue Chart -->
+                <div class="inventory-card" style="padding: 25px; margin-bottom: 0;">
+                    <div class="card-header" style="margin-bottom: 25px;">
+                        <h2>Rendimiento <span class="green">Semanal</span></h2>
+                    </div>
+                    <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Top Products -->
+                <div class="inventory-card" style="padding: 25px; margin-bottom: 0;">
+                    <div class="card-header" style="margin-bottom: 25px;">
+                        <h2>Top <span class="green">Vendidos</span></h2>
+                    </div>
+                    <div id="top-products-list" class="top-list"
+                        style="display: flex; flex-direction: column; gap: 15px;">
+                        <!-- Dinámico -->
+                        <p style="color:var(--text-muted); font-size: 13px;">Procesando datos...</p>
                     </div>
                 </div>
             </section>
@@ -97,35 +142,35 @@
 
         <div id="section-sales" style="display: none;">
             <div class="inventory-card">
-                <div class="card-header">
-                    <h2>Historial de <span class="green">Ventas</span></h2>
-                    <div class="table-actions" style="display: flex; gap: 15px;">
-                        <input type="date" id="sales-date-filter"
-                            style="background:#111; border:1px solid #333; color:white; padding:8px; border-radius:6px;">
-                        <div class="search-box" style="width: 250px;">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="sales-search" placeholder="Buscar factura...">
-                        </div>
+                <div class="table-actions" style="display: flex; gap: 15px;">
+                    <button class="add-btn" onclick="exportSalesToExcel()" style="background:#1d6f42;">
+                        <i class="fas fa-file-excel"></i> Exportar
+                    </button>
+                    <input type="date" id="sales-date-filter"
+                        style="background:#111; border:1px solid #333; color:white; padding:8px; border-radius:6px;">
+                    <div class="search-box" style="width: 250px;">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="sales-search" placeholder="Buscar factura...">
                     </div>
                 </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Factura #</th>
-                                <th>Fecha</th>
-                                <th>Cliente</th>
-                                <th>Items</th>
-                                <th>Pago</th>
-                                <th>Total</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sales-history-body">
-                            <!-- Ventas cargadas dinámicamente -->
-                        </tbody>
-                    </table>
-                </div>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Factura #</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Items</th>
+                            <th>Pago</th>
+                            <th>Total</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sales-history-body">
+                        <!-- Ventas cargadas dinámicamente -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </main>
@@ -312,6 +357,14 @@
             display: flex;
             align-items: center;
             gap: 20px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(153, 255, 0, 0.2);
+            background: rgba(255, 255, 255, 0.03);
         }
 
         .stat-icon {
@@ -809,14 +862,132 @@
                 gap: 15px;
             }
 
-            /* Responsive Tables */
+            /* Responsive Tables to Cards */
             .inventory-card {
-                overflow-x: auto;
-                padding: 15px;
+                padding: 10px;
+                background: transparent;
+                border: none;
             }
 
-            table {
-                min-width: 600px;
+            .table-container {
+                overflow: visible;
+            }
+
+            table,
+            thead,
+            tbody,
+            th,
+            td,
+            tr {
+                display: block;
+            }
+
+            thead tr {
+                display: none;
+                /* Hide headers */
+            }
+
+            #dashboard-inventory-body tr,
+            #sales-history-body tr {
+                background: #0f0f0f;
+                border: 1px solid rgba(153, 255, 0, 0.15);
+                border-radius: 20px;
+                margin-bottom: 30px;
+                padding: 25px;
+                position: relative;
+                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            }
+
+            #dashboard-inventory-body td,
+            #sales-history-body td {
+                padding: 12px 0;
+                border: none;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 14px;
+            }
+
+            #dashboard-inventory-body td:first-child,
+            #sales-history-body td:first-child {
+                font-size: 20px;
+                border-bottom: 2px solid rgba(153, 255, 0, 0.1);
+                padding-bottom: 20px;
+                margin-bottom: 15px;
+                color: var(--primary-color);
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            #dashboard-inventory-body td:first-child::before,
+            #sales-history-body td:first-child::before {
+                margin-bottom: 5px;
+            }
+
+            #dashboard-inventory-body td::before,
+            #sales-history-body td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                font-size: 11px;
+                letter-spacing: 1px;
+            }
+
+            #sales-history-body td:first-child::before {
+                content: "Factura";
+            }
+
+            #dashboard-inventory-body td:first-child::before {
+                content: "Producto";
+            }
+
+            #dashboard-inventory-body td.action-btns,
+            #sales-history-body td.action-btns {
+                margin-top: 15px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.05);
+                justify-content: center;
+                gap: 25px;
+                flex-wrap: wrap;
+            }
+
+            #dashboard-inventory-body td.action-btns::before,
+            #sales-history-body td.action-btns::before {
+                display: none;
+            }
+
+            /* Fix Search and Date filters to stack correctly */
+            .table-actions {
+                flex-direction: column !important;
+                gap: 15px !important;
+                align-items: stretch !important;
+            }
+
+            .table-actions .search-box,
+            .table-actions input[type="date"] {
+                width: 100% !important;
+                margin: 0 !important;
+                height: 45px;
+            }
+
+            /* Analytics Grid Responsiveness */
+            .analytics-grid {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+
+            .chart-container {
+                height: 250px !important;
+                /* Slightly smaller on mobile */
+            }
+
+            .alert-card {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px !important;
+                padding: 25px !important;
             }
 
             /* Modal Responsiveness */
@@ -824,7 +995,8 @@
                 width: 95% !important;
                 margin: 2% auto;
                 padding: 20px;
-                max-height: 95vh;
+                max-height: 85vh;
+                overflow-y: auto;
             }
 
             .sale-grid {

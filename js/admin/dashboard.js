@@ -54,6 +54,7 @@ function initDashboard() {
     setupAddForm();
     setupSizeRowLogic();
     loadSalesHistory();
+    setupNavigation();
 }
 
 // Counter Animation with Easing
@@ -156,17 +157,17 @@ function loadInventory() {
 
             inventoryBody.innerHTML += `
                 <tr class="${p.stock <= 4 ? 'row-warning' : ''}">
-                    <td><strong>${p.name}</strong></td>
-                    <td>${p.category}</td>
-                    <td class="green">$${parseFloat(p.price).toFixed(2)}</td>
-                    <td>
+                    <td data-label="Producto"><strong>${p.name}</strong></td>
+                    <td data-label="Categoría">${p.category}</td>
+                    <td data-label="Precio" class="green">$${parseFloat(p.price).toFixed(2)}</td>
+                    <td data-label="Stock">
                         <div class="stock-control">
                             <button onclick="changeStock('${id}', ${p.stock}, -1)"><i class="fas fa-minus"></i></button>
                             <span class="${p.stock <= 4 ? 'text-red highlight-stock' : ''}">${p.stock}</span>
                             <button onclick="changeStock('${id}', ${p.stock}, 1)"><i class="fas fa-plus"></i></button>
                         </div>
                     </td>
-                    <td><span class="status-tag ${statusClass}">${statusText}</span></td>
+                    <td data-label="Estado"><span class="status-tag ${statusClass}">${statusText}</span></td>
                     <td class="action-btns">
                         <button class="action-btn sell-btn" title="Registrar Venta" onclick="sellProductGlobal('${id}', ${p.stock})">
                             <i class="fas fa-cart-arrow-down"></i>
@@ -182,8 +183,24 @@ function loadInventory() {
             `;
         });
 
+        checkCriticalStock(products);
         updateStats(products.length, totalVal, lowStock);
     });
+}
+
+// Critical Stock Logic
+function checkCriticalStock(products) {
+    const critical = products.filter(p => p.stock <= 2);
+    const alertBox = document.getElementById('critical-stock-alert');
+    const msg = document.getElementById('critical-stock-msg');
+
+    if (critical.length > 0 && alertBox) {
+        alertBox.style.display = 'block';
+        const names = critical.map(p => p.name).slice(0, 3).join(', ') + (critical.length > 3 ? '...' : '');
+        msg.innerHTML = `Detectados <strong>${critical.length} productos</strong> con stock crítico o agotados (${names}).`;
+    } else if (alertBox) {
+        alertBox.style.display = 'none';
+    }
 }
 
 window.sellProductGlobal = async function (id, currentStock) {
@@ -236,24 +253,33 @@ window.sellProductGlobal = async function (id, currentStock) {
  */
 
 // Section Navigation
-document.querySelectorAll('#dashboard-menu a').forEach(link => {
-    link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const section = link.dataset.section;
+function setupNavigation() {
+    const menuLinks = document.querySelectorAll('#dashboard-menu a');
+    menuLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const section = link.dataset.section;
+            if (!section) return;
 
-        document.querySelectorAll('#dashboard-menu a').forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
+            e.preventDefault();
+            console.log(`Cambiando a sección: ${section}`);
 
-        if (section === 'inventory') {
-            document.getElementById('section-inventory').style.display = 'block';
-            document.getElementById('section-sales').style.display = 'none';
-        } else {
-            document.getElementById('section-inventory').style.display = 'none';
-            document.getElementById('section-sales').style.display = 'block';
-            loadSalesHistory();
-        }
+            menuLinks.forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+
+            const inventorySec = document.getElementById('section-inventory');
+            const salesSec = document.getElementById('section-sales');
+
+            if (section === 'inventory') {
+                if (inventorySec) inventorySec.style.display = 'block';
+                if (salesSec) salesSec.style.display = 'none';
+            } else if (section === 'sales') {
+                if (inventorySec) inventorySec.style.display = 'none';
+                if (salesSec) salesSec.style.display = 'block';
+                loadSalesHistory();
+            }
+        });
     });
-});
+}
 
 // Sale Modal Control
 if (closeSaleModalBtn) closeSaleModalBtn.onclick = () => saleModal.style.display = 'none';
@@ -437,12 +463,12 @@ async function loadSalesHistory() {
 
             container.innerHTML += `
                 <tr>
-                    <td><strong>#${sale.invoiceId}</strong></td>
-                    <td>${date}</td>
-                    <td>${sale.customerName}<br><small>${sale.customerPhone}</small></td>
-                    <td>${sale.items.length} productos</td>
-                    <td><span class="status-tag stock-ok">${sale.paymentMethod}</span></td>
-                    <td class="green">$${sale.total.toFixed(2)}</td>
+                    <td data-label="Factura"><strong>#${sale.invoiceId}</strong></td>
+                    <td data-label="Fecha">${date}</td>
+                    <td data-label="Cliente">${sale.customerName}<br><small>${sale.customerPhone}</small></td>
+                    <td data-label="Items">${sale.items.length} productos</td>
+                    <td data-label="Pago"><span class="status-tag stock-ok">${sale.paymentMethod}</span></td>
+                    <td data-label="Total" class="green">$${sale.total.toFixed(2)}</td>
                     <td class="action-btns">
                         <button class="action-btn edit-btn" onclick="showSaleDetails(${saleIdx})" title="Ver Detalles">
                             <i class="fas fa-eye"></i>
@@ -460,7 +486,133 @@ async function loadSalesHistory() {
             animateValue('total-sales', lastStats.totalSales, totalRevenue, 1500, '$', true);
             lastStats.totalSales = totalRevenue;
         }
+
+        updateDashboardAnalytics(currentSalesList);
     });
+}
+
+// Charts & Analytics Logic
+let revenueChartInstance = null;
+
+function updateDashboardAnalytics(sales) {
+    renderRevenueChart(sales);
+    renderTopProducts(sales);
+}
+
+function renderRevenueChart(sales) {
+    const ctx = document.getElementById('revenueChart');
+    if (!ctx) return;
+
+    // Process last 7 days including today
+    const last7Days = [...Array(7)].map((_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        return d.toLocaleDateString();
+    }).reverse();
+
+    const revenueMap = {};
+    last7Days.forEach(date => revenueMap[date] = 0);
+
+    sales.forEach(sale => {
+        const date = sale.createdAt ? sale.createdAt.toDate().toLocaleDateString() : null;
+        if (date && revenueMap.hasOwnProperty(date)) {
+            revenueMap[date] += sale.total;
+        }
+    });
+
+    const data = last7Days.map(date => revenueMap[date]);
+
+    if (revenueChartInstance) {
+        revenueChartInstance.data.datasets[0].data = data;
+        revenueChartInstance.update();
+    } else {
+        revenueChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: last7Days,
+                datasets: [{
+                    label: 'Ventas ($)',
+                    data: data,
+                    borderColor: '#99ff00',
+                    backgroundColor: 'rgba(153, 255, 0, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#888' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#888' }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function renderTopProducts(sales) {
+    const listContainer = document.getElementById('top-products-list');
+    if (!listContainer) return;
+
+    const productSales = {};
+    sales.forEach(sale => {
+        sale.items.forEach(item => {
+            if (!productSales[item.name]) productSales[item.name] = 0;
+            productSales[item.name] += item.qty;
+        });
+    });
+
+    const sorted = Object.entries(productSales)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5);
+
+    listContainer.innerHTML = sorted.length > 0 ? sorted.map(([name, qty], idx) => `
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px; background:rgba(255,255,255,0.02); border-radius:10px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <span style="color:#99ff00; font-weight:900; font-size:14px;">#${idx + 1}</span>
+                <span style="color:#fff; font-size:13px; font-weight:600;">${name}</span>
+            </div>
+            <span style="background:rgba(153,255,0,0.1); color:#99ff00; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:700;">${qty} vendidos</span>
+        </div>
+    `).join('') : '<p style="color:#666; font-size:13px;">Sin datos de ventas aún.</p>';
+}
+
+// Export Utility
+window.exportSalesToExcel = function () {
+    if (currentSalesList.length === 0) {
+        Swal.fire('Info', 'No hay ventas para exportar', 'info');
+        return;
+    }
+
+    const dataToExport = currentSalesList.map(sale => ({
+        "Factura": sale.invoiceId,
+        "Fecha": sale.createdAt ? sale.createdAt.toDate().toLocaleString() : 'N/A',
+        "Cliente": sale.customerName,
+        "Teléfono": sale.customerPhone,
+        "Método Pago": sale.paymentMethod,
+        "Tipo": sale.type || 'Tienda',
+        "Total ($)": sale.total.toFixed(2),
+        "Productos": sale.items.map(i => `${i.name} (${i.qty})`).join(', ')
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Historial_Ventas");
+    XLSX.writeFile(wb, `Ventas_FitnessVIP_${new Date().toLocaleDateString()}.xlsx`);
 }
 
 window.showSaleDetails = function (idx) {

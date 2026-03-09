@@ -11,6 +11,7 @@ import { initFooter } from './components/footer.js';
 import { initContactAnimations } from './components/contact.js';
 import { initBackground } from './components/background.js';
 import { initSmoothScroll } from './utils/smooth-scroll.js';
+import { initReviews } from './components/reviews.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize Smooth Scroll (Lenis)
@@ -29,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCart();
     initFooter();
     initContactAnimations();
+    initReviews();
 
     // Global Scroll Functionalities
     handleGlobalScroll();
