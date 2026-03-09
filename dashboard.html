@@ -18,10 +18,10 @@
             <span class="logo-text">FITNESS<span class="highlight">VIP</span></span>
             <p class="role">Admin Panel</p>
         </div>
-        <nav class="sidebar-nav">
-            <a href="#" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
-            <a href="#inventory-section"><i class="fas fa-boxes-stacked"></i> Inventario</a>
-            <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+        <nav class="sidebar-nav" id="dashboard-menu">
+            <a href="#" class="active" data-section="inventory"><i class="fas fa-boxes-stacked"></i> Inventario</a>
+            <a href="#" data-section="sales"><i class="fas fa-history"></i> Historial de Ventas</a>
+            <a href="#" id="logout-btn-sidebar"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
         </nav>
     </aside>
 
@@ -29,69 +29,105 @@
     <main class="dashboard-main">
         <header class="dashboard-header">
             <div class="welcome">
-                <h1>Bienvenido, <span class="green">Administrador</span></h1>
+                <h1>Panel de <span class="green">Control</span></h1>
                 <p>Resumen general de tu negocio hoy.</p>
             </div>
-            <div class="header-actions">
+            <div class="header-actions" style="display: flex; gap: 10px;">
+                <button class="add-btn" onclick="openSaleModal()" style="background:#25D366;"><i
+                        class="fas fa-shopping-cart"></i> Nueva Venta</button>
                 <button class="add-btn" onclick="openAddModal()"><i class="fas fa-plus"></i> Añadir Producto</button>
             </div>
         </header>
 
-        <!-- Stats Grid -->
-        <section class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon green-bg"><i class="fas fa-coins"></i></div>
-                <div class="stat-info">
-                    <h3>Ventas Totales</h3>
-                    <p class="stat-value" id="total-sales">$0.00</p>
+        <!-- Dynamic Sections -->
+        <div id="section-inventory">
+            <!-- Stats Grid -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon green-bg"><i class="fas fa-coins"></i></div>
+                    <div class="stat-info">
+                        <h3>Ventas Totales</h3>
+                        <p class="stat-value" id="total-sales">$0.00</p>
+                    </div>
                 </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon blue-bg"><i class="fas fa-box"></i></div>
-                <div class="stat-info">
-                    <h3>Productos</h3>
-                    <p class="stat-value" id="total-products">0</p>
+                <div class="stat-card">
+                    <div class="stat-icon blue-bg"><i class="fas fa-box"></i></div>
+                    <div class="stat-info">
+                        <h3>Productos</h3>
+                        <p class="stat-value" id="total-products">0</p>
+                    </div>
                 </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon red-bg"><i class="fas fa-exclamation-triangle"></i></div>
-                <div class="stat-info">
-                    <h3>Stock Bajo</h3>
-                    <p class="stat-value" id="low-stock-count">0</p>
+                <div class="stat-card">
+                    <div class="stat-icon red-bg"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="stat-info">
+                        <h3>Stock Bajo</h3>
+                        <p class="stat-value" id="low-stock-count">0</p>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Notifications Area -->
-        <div id="notifications-area" class="notifications"></div>
+            <!-- Inventory Table -->
+            <section class="inventory-card">
+                <div class="card-header">
+                    <h2>Control de <span class="green">Inventario</span></h2>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-inventory" placeholder="Buscar producto...">
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Categoría</th>
+                                <th>Precio</th>
+                                <th>Stock</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboard-inventory-body">
+                            <!-- Sincronizado con Firestore -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
 
-        <!-- Inventory Section -->
-        <section id="inventory-section" class="inventory-card">
-            <div class="card-header">
-                <h2>Control de <span class="green">Inventario</span></h2>
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="search-inventory" placeholder="Buscar producto...">
+        <div id="section-sales" style="display: none;">
+            <div class="inventory-card">
+                <div class="card-header">
+                    <h2>Historial de <span class="green">Ventas</span></h2>
+                    <div class="table-actions" style="display: flex; gap: 15px;">
+                        <input type="date" id="sales-date-filter"
+                            style="background:#111; border:1px solid #333; color:white; padding:8px; border-radius:6px;">
+                        <div class="search-box" style="width: 250px;">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="sales-search" placeholder="Buscar factura...">
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Factura #</th>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Items</th>
+                                <th>Pago</th>
+                                <th>Total</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-history-body">
+                            <!-- Ventas cargadas dinámicamente -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Categoría</th>
-                            <th>Precio</th>
-                            <th>Stock</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dashboard-inventory-body">
-                        <!-- Sincronizado con Firestore -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        </div>
     </main>
 
     <!-- Add Product Modal -->
@@ -445,6 +481,29 @@
             border-color: var(--primary-color);
         }
 
+        .sell-btn:hover {
+            background: #99ff00;
+            color: black;
+            border-color: #99ff00;
+            box-shadow: 0 0 15px rgba(153, 255, 0, 0.4);
+        }
+
+        .row-warning {
+            background: rgba(255, 68, 68, 0.05);
+        }
+
+        .text-red {
+            color: #ff4444;
+            font-weight: 900;
+        }
+
+        .highlight-stock {
+            padding: 2px 8px;
+            background: rgba(255, 68, 68, 0.1);
+            border-radius: 4px;
+            border: 1px solid rgba(255, 68, 68, 0.3);
+        }
+
         /* Modal */
         .modal {
             display: none;
@@ -682,15 +741,18 @@
         @media (max-width: 768px) {
             .sidebar {
                 width: 100%;
-                height: 70px;
+                height: 75px;
                 bottom: 0;
                 top: auto;
                 flex-direction: row;
                 justify-content: space-around;
                 align-items: center;
-                padding: 0 10px;
+                padding: 0;
                 border-right: none;
-                border-top: 1px solid rgba(255, 255, 255, 0.05);
+                border-top: 2px solid var(--primary-color);
+                z-index: 10000;
+                background: #050505;
+                backdrop-filter: blur(10px);
             }
 
             .sidebar-header {
@@ -702,48 +764,79 @@
                 width: 100%;
                 justify-content: space-around;
                 gap: 0;
+                padding: 0;
             }
 
             .sidebar-nav a {
+                flex-direction: column;
+                gap: 5px;
                 padding: 10px;
+                font-size: 10px;
+                text-align: center;
+                flex: 1;
+                border-radius: 0;
+            }
+
+            .sidebar-nav a i {
+                font-size: 20px;
+            }
+
+            .sidebar-nav a span {
+                display: block;
             }
 
             .dashboard-main {
                 margin-left: 0;
-                padding: 20px 5%;
-                padding-bottom: 90px;
-                /* Space for bottom nav */
+                padding: 20px 15px;
+                padding-bottom: 100px;
                 width: 100%;
-                max-width: 100vw;
-                overflow-x: hidden;
             }
 
             .dashboard-header {
                 flex-direction: column;
-                align-items: flex-start;
+                align-items: stretch;
                 gap: 20px;
+                text-align: center;
             }
 
             .stats-grid {
                 grid-template-columns: 1fr;
+                gap: 15px;
             }
 
             .card-header {
                 flex-direction: column;
-                align-items: stretch;
                 gap: 15px;
             }
 
-            .search-box {
-                width: 100%;
+            /* Responsive Tables */
+            .inventory-card {
+                overflow-x: auto;
+                padding: 15px;
             }
 
+            table {
+                min-width: 600px;
+            }
+
+            /* Modal Responsiveness */
             .modal-content {
-                width: 95%;
-                margin: 5% auto;
-                padding: 25px;
-                max-height: 90vh;
-                overflow-y: auto;
+                width: 95% !important;
+                margin: 2% auto;
+                padding: 20px;
+                max-height: 95vh;
+            }
+
+            .sale-grid {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+
+            .customer-info {
+                border-right: none !important;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                padding-right: 0 !important;
+                padding-bottom: 20px;
             }
 
             .form-grid {
@@ -755,6 +848,143 @@
             }
         }
     </style>
+
+    <!-- Modal: Nueva Venta Avanzada -->
+    <div id="sale-modal" class="modal">
+        <div class="modal-content sale-modal-content" style="max-width: 900px !important;">
+            <div class="modal-header">
+                <h2>Registrar <span class="green">Nueva Venta</span></h2>
+                <span class="close-modal" id="close-sale-modal" style="cursor:pointer;">&times;</span>
+            </div>
+            <form id="sale-form">
+                <div class="sale-grid"
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;">
+                    <div class="customer-info"
+                        style="border-right: 1px solid rgba(255,255,255,0.05); padding-right: 20px;">
+                        <h3 style="color:var(--primary-color); margin-bottom:15px; font-size:14px;">DATOS DEL CLIENTE
+                        </h3>
+                        <div class="form-group" style="margin-bottom:15px;">
+                            <label>Nombre del Cliente</label>
+                            <input type="text" id="sale-customer-name" required placeholder="Ej. Juan Pérez">
+                        </div>
+                        <div class="form-group" style="margin-bottom:15px;">
+                            <label>Teléfono</label>
+                            <input type="text" id="sale-customer-phone" required placeholder="Ej. 04121234567">
+                        </div>
+                        <div class="form-group" style="margin-bottom:15px;">
+                            <label>Tipo de Venta</label>
+                            <select id="sale-type" required>
+                                <option value="Tienda">Venta en Tienda</option>
+                                <option value="Online">Venta Online</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:15px;">
+                            <label>Método de Pago</label>
+                            <select id="sale-payment" onchange="checkOtherPayment(this)" required>
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Binance">Binance</option>
+                                <option value="Bolívares">Bolívares</option>
+                                <option value="Zelle">Zelle</option>
+                                <option value="Banesco Panamá">Banesco Panamá</option>
+                                <option value="Otro">Otro...</option>
+                            </select>
+                            <input type="text" id="sale-payment-other" class="hidden"
+                                placeholder="Especificar otro método" style="margin-top:10px; display:none;">
+                        </div>
+                    </div>
+
+                    <div class="cart-info">
+                        <h3 style="color:var(--primary-color); margin-bottom:15px; font-size:14px;">PRODUCTOS</h3>
+                        <div class="product-search-box" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <select id="sale-product-select" style="flex:1;">
+                                <option value="">Cargando productos...</option>
+                            </select>
+                            <button type="button" onclick="addToSaleCart()" class="add-btn"
+                                style="padding:10px 15px;">+</button>
+                        </div>
+                        <div class="sale-items-list" id="sale-items-list"
+                            style="background: #0a0a0a; border-radius: 8px; max-height: 250px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.03); margin-bottom: 15px;">
+                            <!-- Items añadidos -->
+                        </div>
+                        <div class="sale-summary"
+                            style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(153, 255, 0, 0.05); border-radius: 6px; font-weight: 900; font-size: 1.2rem; color: var(--primary-color);">
+                            <span>TOTAL:</span>
+                            <span id="sale-total-display">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="margin-top:20px; display:flex; gap:10px; justify-content: flex-end;">
+                    <button type="button" class="cancel-btn" id="cancel-sale"
+                        style="padding:15px; background:transparent; border:1px solid #333; color:#888; border-radius:10px; cursor:pointer;">Cerrar
+                        sin guardar</button>
+                    <button type="submit" class="save-btn" style="flex:1; margin-top:0;">Generar Factura y Descontar
+                        Stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Detalles de Venta -->
+    <div id="sale-details-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px !important;">
+            <div class="modal-header">
+                <h2>Detalle de <span class="green">Factura</span></h2>
+                <span class="close-modal" id="close-details-modal" style="cursor:pointer;">&times;</span>
+            </div>
+            <div id="sale-details-content" style="margin-top:20px;">
+                <!-- Contenido dinámico -->
+                <div class="details-section"
+                    style="margin-bottom:20px; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <span id="detail-invoice-id" style="font-weight:900; color:var(--primary-color);"></span>
+                        <span id="detail-date" style="color:#888; font-size:13px;"></span>
+                    </div>
+                    <div id="detail-customer-box"
+                        style="background:rgba(255,255,255,0.02); padding:15px; border-radius:10px;">
+                        <p style="margin:0; font-size:14px; color:#aaa;">Cliente: <strong id="detail-customer-name"
+                                style="color:#fff;"></strong></p>
+                        <p style="margin:5px 0 0; font-size:14px; color:#aaa;">Teléfono: <strong
+                                id="detail-customer-phone" style="color:#fff;"></strong></p>
+                    </div>
+                </div>
+
+                <div class="details-section" style="margin-bottom:20px;">
+                    <h3
+                        style="font-size:14px; color:var(--primary-color); margin-bottom:10px; text-transform:uppercase;">
+                        Productos</h3>
+                    <div id="detail-items-list" style="display:flex; flex-direction:column; gap:8px;">
+                        <!-- Items -->
+                    </div>
+                </div>
+
+                <div class="details-section"
+                    style="background:rgba(153, 255, 0, 0.03); padding:20px; border-radius:12px; border:1px solid rgba(153, 255, 0, 0.1);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:14px;">
+                        <span style="color:#aaa;">Método de Pago:</span>
+                        <strong id="detail-payment-method" style="color:var(--primary-color);"></strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:14px;">
+                        <span style="color:#aaa;">Tipo de Venta:</span>
+                        <strong id="detail-sale-type" style="color:#fff;"></strong>
+                    </div>
+                    <div
+                        style="display:flex; justify-content:space-between; margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.05); font-weight:900; font-size:1.4rem;">
+                        <span style="color:#fff;">TOTAL:</span>
+                        <span id="detail-total" class="green"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="margin-top:25px; display:flex; gap:10px;">
+                <button type="button" class="cancel-btn"
+                    onclick="document.getElementById('sale-details-modal').style.display='none'"
+                    style="flex:1; padding:15px;">Cerrar</button>
+                <button type="button" id="re-share-wa" class="save-btn"
+                    style="flex:1; margin:0; background:#25D366; color:white; border:none;">
+                    <i class="fab fa-whatsapp"></i> Re-enviar Factura
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

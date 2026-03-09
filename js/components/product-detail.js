@@ -63,6 +63,16 @@ export function showProductDetail(product) {
                     <span class="pm-price">$${parseFloat(product.price).toFixed(2)}</span>
                 </div>
 
+                ${product.stock > 0 && product.stock <= 4
+            ? `<div class="pm-stock-warning">⚠️ ¡Date prisa! Solo quedan ${product.stock} unidades disponibles.</div>`
+            : ""
+        }
+                
+                ${product.stock <= 0
+            ? `<div class="pm-stock-out">PRODUCTO ACTUALMENTE AGOTADO</div>`
+            : ""
+        }
+
                 ${flavors.length > 0
             ? `
                     <div class="pm-section">
@@ -87,12 +97,12 @@ export function showProductDetail(product) {
 
                 <div class="pm-actions">
                     <div class="pm-qty">
-                        <button id="qty-minus">-</button>
+                        <button id="qty-minus" ${product.stock <= 0 ? "disabled" : ""}>-</button>
                         <span id="qty-value">1</span>
-                        <button id="qty-plus">+</button>
+                        <button id="qty-plus" ${product.stock <= 0 ? "disabled" : ""}>+</button>
                     </div>
-                    <button class="pm-add-btn" id="add-to-cart-action">
-                        AÑADIR AL CARRITO • $<span id="btn-total-price">${parseFloat(product.price).toFixed(2)}</span>
+                    <button class="pm-add-btn" id="add-to-cart-action" ${product.stock <= 0 ? "disabled" : ""}>
+                        ${product.stock <= 0 ? "AGOTADO" : `AÑADIR AL CARRITO • $<span id="btn-total-price">${parseFloat(product.price).toFixed(2)}</span>`}
                     </button>
                 </div>
 

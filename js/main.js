@@ -9,8 +9,16 @@ import { initProducts } from './components/products.js';
 import { initCart } from './components/cart.js';
 import { initFooter } from './components/footer.js';
 import { initContactAnimations } from './components/contact.js';
+import { initBackground } from './components/background.js';
+import { initSmoothScroll } from './utils/smooth-scroll.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Smooth Scroll (Lenis)
+    initSmoothScroll();
+
+    // Initialize Background Mesh
+    initBackground();
+
     // Register ScrollTrigger
     gsap.registerPlugin(ScrollTrigger);
 

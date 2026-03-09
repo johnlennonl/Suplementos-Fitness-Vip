@@ -39,14 +39,15 @@ body {
     height: 100vh;
     z-index: -1;
     overflow: hidden;
-    background-image: url('../img/bg-suplementos.png');
-    background-size: cover;
-    background-position: center top;
-    background-repeat: no-repeat;
-    opacity: 0.35;
-    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 80%);
-    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 80%);
+    opacity: 0.6;
+    pointer-events: none;
 }
+
+#bg-canvas {
+    width: 100%;
+    height: 100%;
+}
+
 
 h1,
 h2,
@@ -139,5 +140,162 @@ h4 {
         width: 50px;
         height: 50px;
         font-size: 20px;
+    }
+}
+
+
+.logo-text2 {
+    font-size: 4rem;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    text-align: center;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.logo-text2 .highlight {
+    font-weight: 900;
+    color: var(--primary-color);
+    text-shadow: 0 0 30px rgba(153, 255, 0, 0.4);
+}
+
+/* Advisory Section - Elite Style */
+.advisory-section {
+    padding: 80px 10%;
+    background: linear-gradient(to bottom, #000, #050505);
+    position: relative;
+    overflow: hidden;
+}
+
+.advisory-container {
+    background: rgba(10, 10, 10, 0.8);
+    border: 1px solid rgba(153, 255, 0, 0.1);
+    border-radius: 20px;
+    padding: 60px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 40px;
+    align-items: center;
+    position: relative;
+    backdrop-filter: blur(20px);
+}
+
+.advisory-container::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, var(--primary-color), transparent, var(--primary-color));
+    z-index: -1;
+    border-radius: 22px;
+    opacity: 0.1;
+}
+
+.advisory-tag {
+    color: var(--primary-color);
+    font-weight: 900;
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 20px;
+}
+
+.advisory-content h2 {
+    font-size: 3rem;
+    line-height: 1;
+    margin-bottom: 20px;
+}
+
+.advisory-content h2 span {
+    color: var(--primary-color);
+    -webkit-text-stroke: 1px var(--primary-color);
+    -webkit-text-fill-color: transparent;
+}
+
+.advisory-content p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    margin-bottom: 35px;
+    max-width: 600px;
+}
+
+.cta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--primary-color);
+    color: black;
+    padding: 18px 35px;
+    border-radius: 50px;
+    font-weight: 900;
+    text-transform: uppercase;
+    text-decoration: none;
+    font-size: 14px;
+    letter-spacing: 1px;
+    transition: var(--transition-smooth);
+    box-shadow: 0 10px 30px rgba(153, 255, 0, 0.3);
+}
+
+.cta-pill:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(153, 255, 0, 0.5);
+}
+
+.advisory-badge {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.badge-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 2px dashed rgba(153, 255, 0, 0.3);
+    border-radius: 50%;
+    animation: rotate 20s linear infinite;
+}
+
+.advisory-badge i {
+    font-size: 60px;
+    color: var(--primary-color);
+    filter: drop-shadow(0 0 15px rgba(153, 255, 0, 0.5));
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 968px) {
+    .advisory-container {
+        grid-template-columns: 1fr;
+        padding: 40px;
+        text-align: center;
+    }
+
+    .advisory-content h2 {
+        font-size: 2.2rem;
+    }
+
+    .advisory-badge {
+        order: -1;
+        margin: 0 auto;
+    }
+
+    .advisory-content p {
+        margin: 20px auto 35px;
     }
 }

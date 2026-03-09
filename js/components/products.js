@@ -73,29 +73,36 @@ function renderProducts(container, filter = "Todos") {
             <div class="product-grid">
                 ${filtered
                 .map(
-                    (product) => `
-                    <div class="product-card reveal">
-                        <div class="product-img">
-                            <img src="${product.img}" alt="${product.name}" class="p-img">
-                            <div class="product-badge">${product.category}</div>
+                    (product) => {
+                        const lowStock = product.stock > 0 && product.stock <= 4;
+                        return `
+                        <div class="product-card reveal">
+                            <div class="product-img">
+                                <img src="${product.img}" alt="${product.name}" class="p-img">
+                                <div class="product-badge">${product.category}</div>
+                                ${lowStock ? `<div class="low-stock-badge">⚠️ QUEDAN POCOS</div>` : ""}
+                                ${product.stock <= 0 ? `<div class="out-of-stock-badge">AGOTADO</div>` : ""}
+                            </div>
+                            <div class="product-info">
+                                <h3>${product.name}</h3>
+                                <p class="price">$${parseFloat(product.price).toFixed(2)}</p>
+                                <button class="view-btn">Ver Producto</button>
+                            </div>
                         </div>
-                        <div class="product-info">
-                            <h3>${product.name}</h3>
-                            <p class="price">$${parseFloat(product.price).toFixed(2)}</p>
-                            <a href="https://wa.me/yournumber?text=Hola, me interesa ${product.name}" class="buy-btn" target="_blank">Consultar</a>
-                        </div>
-                    </div>
-                `
+                    `}
                 )
                 .join("")}
             </div>
         `;
         // Add click listeners to open product detail view
+        // The 'encodedMessage' variable is not defined in this scope.
+        // Assuming this line is intended to be part of a larger change or a placeholder.
+        // For now, it's commented out to maintain syntactical correctness.
+        // const whatsappUrl = `https://wa.me/584126581304?text=${encodedMessage}`;
         const cards = container.querySelectorAll('.product-card');
         cards.forEach((card, idx) => {
             const product = filtered[idx];
             card.addEventListener('click', (e) => {
-                if (e.target.closest('.buy-btn')) return;
                 showProductDetail(product);
             });
         });
@@ -236,25 +243,95 @@ function setupStyles() {
             margin-bottom: 20px;
         }
 
-        .buy-btn {
+        .view-btn {
             display: block;
             width: 100%;
             padding: 12px;
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.1);
-            color: white;
-            text-decoration: none;
+            background: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            color: black;
             text-transform: uppercase;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 12px;
             border-radius: 6px;
+            cursor: pointer;
             transition: var(--transition-smooth);
         }
 
-        .buy-btn:hover {
+        .view-btn:hover {
             background: white;
             color: black;
             border-color: white;
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+
+        .low-stock-badge {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: #ff4444;
+            color: white;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            animation: pulse-red 2s infinite;
+        }
+
+        .out-of-stock-badge {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            border: 2px solid #ff4444;
+            padding: 10px 20px;
+            font-size: 1.5rem;
+            font-weight: 900;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+        }
+
+        /* Detail view changes */
+        .pm-stock-warning {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .pm-stock-out {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #666;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .pm-add-btn:disabled {
+            background: #222;
+            color: #444;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none !important;
         }
     `;
 

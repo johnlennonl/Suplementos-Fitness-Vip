@@ -174,7 +174,7 @@ function sendWhatsAppOrder() {
     message += "Espero tu respuesta para coordinar la entrega. ¡Gracias! 🚀";
 
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/YOUR_NUMBER?text=${encodedMessage}`;
+    const whatsappUrl = `https://wa.me/584126581304?text=${encodedMessage}`;
 
     if (typeof Swal !== 'undefined') {
         Swal.fire({

@@ -40,7 +40,7 @@ export function initFooter() {
                         <h4>Contacto</h4>
                         <ul>
                             <li><i class="fas fa-location-dot green"></i> Valencia , Venezuela</li>
-                            <li><i class="fas fa-phone green"></i> +34 000 000 000</li>
+                            <li><i class="fas fa-phone green"></i> +58 412 6581304</li>
                             <li><i class="fas fa-envelope green"></i> info@fitnessvip.com</li>
                         </ul>
                     </div>
