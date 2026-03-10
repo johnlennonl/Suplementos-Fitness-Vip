@@ -49,7 +49,7 @@ export function initFooter() {
             
             <div class="footer-bottom">
                 <p>&copy; 2024 <span class="green">Suplementos Fitness VIP</span>. Todos los derechos reservados.</p>
-                <p class="dev-tag">Diseñado para el Élite</p>
+                
             </div>
         </div>
     `;
@@ -58,8 +58,8 @@ export function initFooter() {
 
     const styles = `
         .footer-section {
-            background: #050505;
-            border-top: 1px solid rgba(255,255,255,0.05);
+            background: var(--secondary-bg);
+            border-top: 1px solid rgba(128,128,128,0.05);
             margin-top: 50px;
         }
 
@@ -80,6 +80,7 @@ export function initFooter() {
         .footer-logo {
             font-size: 2.5rem;
             letter-spacing: -0.05em;
+            color: var(--text-main);
         }
 
         .social-links {
@@ -90,12 +91,12 @@ export function initFooter() {
         .social-links a {
             width: 45px;
             height: 45px;
-            background: rgba(255,255,255,0.05);
+            background: rgba(128,128,128,0.05);
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            color: white;
+            color: var(--text-main);
             text-decoration: none;
             transition: var(--transition-smooth);
             font-size: 18px;
@@ -116,7 +117,7 @@ export function initFooter() {
         .footer-col h4 {
             font-size: 14px;
             margin-bottom: 25px;
-            color: white;
+            color: var(--text-main);
             letter-spacing: 0.1em;
         }
 
@@ -148,7 +149,7 @@ export function initFooter() {
             max-width: 1200px;
             margin: 80px auto 0;
             padding-top: 30px;
-            border-top: 1px solid rgba(255,255,255,0.05);
+            border-top: 1px solid rgba(128,128,128,0.08);
             display: flex;
             justify-content: space-between;
             align-items: center;

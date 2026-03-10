@@ -15,6 +15,16 @@
     --border-radius: 4px;
 }
 
+/* Light Mode Variables override */
+body.light-mode {
+    --bg-color: #FFFFFF;
+    --secondary-bg: #F8F9F5;
+    --card-bg: #FFFFFF;
+    --text-main: #121410;
+    --text-muted: #5A5E54;
+    --accent-glow: rgba(153, 255, 0, 0.1);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -72,6 +82,9 @@ h4 {
 .section-padding {
     padding: var(--section-padding);
 }
+
+.pt-0 { padding-top: 0 !important; }
+.pb-0 { padding-bottom: 0 !important; }
 
 /* Animations Helpers */
 .reveal {
@@ -175,14 +188,15 @@ h4 {
 /* Advisory Section - Elite Style */
 .advisory-section {
     padding: 80px 10%;
-    background: linear-gradient(to bottom, #000, #050505);
+    background: var(--bg-color);
     position: relative;
     overflow: hidden;
+    border-top: 1px solid rgba(128, 128, 128, 0.05);
 }
 
 .advisory-container {
-    background: rgba(10, 10, 10, 0.8);
-    border: 1px solid rgba(153, 255, 0, 0.1);
+    background: var(--secondary-bg);
+    border: 1px solid rgba(128, 128, 128, 0.1);
     border-radius: 20px;
     padding: 60px;
     display: grid;

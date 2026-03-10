@@ -6,8 +6,8 @@
     left: 0;
     width: 100%;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(15px);
     z-index: 9999;
     opacity: 0;
     pointer-events: none;
@@ -24,14 +24,14 @@
 }
 
 .review-modal {
-    background: #0a0a0a;
+    background: var(--bg-color);
     width: 100%;
     max-width: 450px;
-    border: 2px solid var(--primary-color);
+    border: 1px solid var(--primary-color);
     border-radius: 4px;
     padding: 40px;
     position: relative;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 20px rgba(153, 255, 0, 0.1);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.1), 0 0 20px var(--accent-glow);
 }
 
 .review-close {
@@ -61,7 +61,7 @@
 }
 
 .review-header h2 {
-    color: #fff;
+    color: var(--text-main);
     font-size: 22px;
     font-weight: 900;
     text-transform: uppercase;
@@ -75,7 +75,7 @@
 }
 
 .review-products-summary {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--secondary-bg);
     padding: 15px;
     border-radius: 4px;
     margin-bottom: 25px;
@@ -119,11 +119,11 @@
 
 #review-comment {
     width: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--secondary-bg);
+    border: 1px solid rgba(128, 128, 128, 0.1);
     border-radius: 4px;
     padding: 15px;
-    color: #fff;
+    color: var(--text-main);
     min-height: 100px;
     resize: none;
     font-family: inherit;
@@ -167,7 +167,8 @@
 /* Landing Page Section */
 .reviews-section {
     padding: 100px 5%;
-    background: #050505;
+    background: var(--bg-color);
+    border-top: 1px solid rgba(128, 128, 128, 0.05);
 }
 
 .reviews-viewport {
@@ -180,8 +181,8 @@
     position: relative;
     padding: 20px 0;
     /* Masking for edges */
-    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
 }
 
 .reviews-grid {
@@ -203,9 +204,9 @@
 .review-card {
     background: var(--card-bg);
     padding: 40px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 4px;
-    transition: 0.3s;
+    border: 1px solid rgba(128, 128, 128, 0.1);
+    border-radius: 12px;
+    transition: var(--transition-smooth);
 }
 
 .carousel-mode .review-card {
@@ -217,8 +218,8 @@
 
 .review-card:hover {
     border-color: var(--primary-color);
-    transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
 }
 
 .review-stars {
@@ -228,7 +229,7 @@
 }
 
 .review-text {
-    color: #fff;
+    color: var(--text-main);
     font-style: italic;
     line-height: 1.6;
     margin-bottom: 20px;

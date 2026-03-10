@@ -12,6 +12,7 @@ import { initContactAnimations } from './components/contact.js';
 import { initBackground } from './components/background.js';
 import { initSmoothScroll } from './utils/smooth-scroll.js';
 import { initReviews } from './components/reviews.js';
+import { initTheme } from './components/theme.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize Smooth Scroll (Lenis)
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize Components
     initNav();
+    initTheme(); // Must come after initNav
     initHero();
     initProducts();
     initCart();

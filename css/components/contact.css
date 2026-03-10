@@ -1,7 +1,6 @@
-/* Contact Section - Brutalist Aesthetic */
 .contact-section {
     padding: 100px 10%;
-    background: #000;
+    background: var(--bg-color);
     position: relative;
     overflow: hidden;
 }
@@ -13,7 +12,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at 80% 20%, rgba(153, 255, 0, 0.03) 0%, transparent 50%);
+    background: radial-gradient(circle at 80% 20%, var(--accent-glow) 0%, transparent 50%);
     pointer-events: none;
 }
 
@@ -33,6 +32,7 @@
     margin-bottom: 10px;
     line-height: 0.85;
     letter-spacing: -3px;
+    color: var(--text-main);
 }
 
 .contact-info p {
@@ -45,8 +45,12 @@
     position: relative;
     margin: 20px 0;
     opacity: 0.6;
+    mix-blend-mode: multiply; /* Better for light backgrounds */
+    filter: drop-shadow(0 0 15px rgba(153, 255, 0, 0.1));
+}
+
+body:not(.light-mode) .contact-brand {
     mix-blend-mode: plus-lighter;
-    filter: drop-shadow(0 0 15px rgba(153, 255, 0, 0.2));
 }
 
 .contact-brand img {
@@ -66,33 +70,28 @@
     align-items: flex-start;
     gap: 20px;
     padding: 20px 25px;
-    background: rgba(20, 20, 20, 0.6);
-    border: 1px solid rgba(153, 255, 0, 0.1);
+    background: var(--secondary-bg);
+    border: 1px solid rgba(128, 128, 128, 0.1);
     border-radius: 12px;
     transition: var(--transition-smooth);
     width: 100%;
     max-width: 450px;
-    /* Reduciendo el ancho */
     position: relative;
     overflow: hidden;
-    opacity: 1 !important;
-    /* Forzando visibilidad */
-    transform: none !important;
-    /* Quitadno cualquier residuo de GSAP */
     backdrop-filter: blur(10px);
 }
 
 .contact-item:hover {
-    background: rgba(153, 255, 0, 0.08);
+    background: rgba(153, 255, 0, 0.05);
     border-color: var(--primary-color);
-    box-shadow: 0 5px 25px rgba(153, 255, 0, 0.2);
+    box-shadow: 0 5px 25px var(--accent-glow);
 }
 
 .contact-item i {
     font-size: 24px;
     color: var(--primary-color);
     margin-top: 5px;
-    filter: drop-shadow(0 0 8px rgba(153, 255, 0, 0.3));
+    filter: drop-shadow(0 0 8px rgba(153, 255, 0, 0.2));
 }
 
 .contact-item h3 {
@@ -108,7 +107,7 @@
 .contact-item p {
     font-size: 16px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--text-main);
     line-height: 1.4;
 }
 
@@ -116,11 +115,15 @@
     height: 500px;
     border-radius: 20px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-    filter: grayscale(1) invert(0.9) contrast(1.2);
-    /* Brutalist map effect */
+    border: 1px solid rgba(128, 128, 128, 0.1);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+    filter: grayscale(1);
     transition: var(--transition-smooth);
+}
+
+body:not(.light-mode) .contact-map {
+    filter: grayscale(1) invert(0.9) contrast(1.2);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
 }
 
 .contact-map:hover {

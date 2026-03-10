@@ -19,10 +19,12 @@ function renderCategories(container) {
         snapshot.forEach(doc => categories.push(doc.data().name));
 
         container.innerHTML = `
-            <div class="categories-wrapper" style="opacity: 1; transform: none; text-align: center; margin-bottom: 20px;">
-                <h2 class="section-title" style="margin-bottom: 25px; font-size: clamp(2.5rem, 5vw, 4rem);">Explora Nuestro <span class="green">Catálogo</span></h2>
-                <div class="category-list">
-                    ${categories.map((cat) => `<button class="category-btn ${cat === "Todos" ? "active" : ""}" data-category="${cat}">${cat}</button>`).join("")}
+            <div class="categories-wrapper" style="opacity: 1; transform: none; text-align: center; margin-bottom: 0;">
+                <h2 class="section-title" style="margin-bottom: 15px; font-size: clamp(2.2rem, 5vw, 3.5rem); letter-spacing: -1px;">Explora Nuestro <span class="green">Catálogo</span></h2>
+                <div class="category-list-container" style="position: relative; margin-bottom: 5px;">
+                    <div class="category-list">
+                        ${categories.map((cat) => `<button class="category-btn ${cat === "Todos" ? "active" : ""}" data-category="${cat}">${cat}</button>`).join("")}
+                    </div>
                 </div>
             </div>
         `;
@@ -37,7 +39,29 @@ function renderCategories(container) {
             });
         });
 
-        // gsap animation here if needed (already in logic below)
+        // GSAP Continuous Linear Scroll for mobile
+        const scrollList = container.querySelector(".category-list");
+        if (scrollList && window.innerWidth < 768) {
+            const maxScroll = scrollList.scrollWidth - scrollList.clientWidth;
+            
+            if (maxScroll > 0) {
+                const scrollAnim = gsap.to(scrollList, {
+                    scrollLeft: maxScroll,
+                    duration: categories.length * 4, // Lento y constante
+                    ease: "none",
+                    repeat: -1,
+                    yoyo: true, // Va y viene suavemente
+                    paused: false
+                });
+
+                // Pause on user interaction
+                scrollList.addEventListener("touchstart", () => scrollAnim.pause());
+                scrollList.addEventListener("touchend", () => {
+                    // Resume after a small delay
+                    gsap.delayedCall(2, () => scrollAnim.resume());
+                });
+            }
+        }
     });
 }
 
@@ -54,11 +78,11 @@ function renderProducts(container, filter = "Todos") {
         const filtered = filter === "Todos" ? products : products.filter((p) => p.category === filter);
 
         container.innerHTML = `
-            <div class="products-header" style="text-align: center; margin-bottom: 30px; opacity: 1; transform: none;">
-                <div class="products-search-wrapper" style="max-width: 450px; margin: 0 auto; position: relative;">
-                    <i class="fas fa-search" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--primary-color); opacity: 0.7;"></i>
-                    <input type="text" id="live-product-search" placeholder="Buscar por nombre (ej: Creatina)..." 
-                        style="width: 100%; padding: 14px 15px 14px 50px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; color: white; outline: none; font-family: inherit; transition: var(--transition-smooth); font-size: 0.95rem;">
+            <div class="products-header" style="text-align: center; margin-bottom: 20px; opacity: 1; transform: none;">
+                <div class="products-search-wrapper" style="max-width: 400px; margin: 0 auto; position: relative;">
+                    <i class="fas fa-search" style="position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--primary-color); opacity: 0.5; font-size: 0.9rem;"></i>
+                    <input type="text" id="live-product-search" placeholder="Buscar producto..." 
+                        style="width: 100%; padding: 12px 15px 12px 45px; background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; color: white; outline: none; font-family: inherit; transition: var(--transition-smooth); font-size: 0.9rem;">
                 </div>
             </div>
             <div class="product-grid" id="main-product-grid">
@@ -142,7 +166,7 @@ function setupStyles() {
     const styles = `
         .section-title {
             font-size: 2.5rem;
-            margin-bottom: 40px;
+            margin-bottom: 25px;
             text-align: center;
         }
 
@@ -156,20 +180,30 @@ function setupStyles() {
             justify-content: center;
             gap: 15px;
             flex-wrap: wrap;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
             padding: 10px;
         }
 
         @media (max-width: 768px) {
+            .category-list-container::after {
+                content: '';
+                position: absolute;
+                top: 0; right: 0; bottom: 0;
+                width: 50px;
+                background: linear-gradient(to right, transparent, var(--bg-color));
+                pointer-events: none;
+                z-index: 2;
+            }
             .category-list {
                 justify-content: flex-start !important;
                 flex-wrap: nowrap !important;
                 overflow-x: auto !important;
-                padding: 10px 20px !important;
-                gap: 10px !important;
+                padding: 10px 40px 10px 20px !important;
+                gap: 8px !important;
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: none;
-                margin: 0 -20px 20px -20px !important;
+                margin: 0 -20px 0 -20px !important;
+                mask-image: linear-gradient(to right, black 85%, transparent 100%);
             }
             .category-list::-webkit-scrollbar {
                 display: none;
@@ -177,41 +211,46 @@ function setupStyles() {
             .category-btn {
                 flex: 0 0 auto !important;
                 white-space: nowrap !important;
-                padding: 8px 18px !important;
-                font-size: 11px !important;
+                padding: 7px 15px !important;
+                font-size: 10px !important;
             }
             .section-title {
-                font-size: 2.2rem !important;
+                font-size: 1.8rem !important;
+                margin-bottom: 15px !important;
             }
         }
 
         .category-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: white;
-            padding: 12px 25px;
+            background: rgba(128,128,128,0.05);
+            border: 1px solid rgba(128,128,128,0.1);
+            color: var(--text-muted);
+            padding: 10px 22px;
             border-radius: 100px;
             cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
+            font-weight: 700;
+            font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
             transition: var(--transition-smooth);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         .category-btn:hover, .category-btn.active {
-            background: var(--primary-color);
-            color: black;
+            background: rgba(153, 255, 0, 0.1);
+            color: var(--primary-color);
             border-color: var(--primary-color);
-            box-shadow: 0 0 20px var(--accent-glow);
+            box-shadow: 0 0 15px var(--accent-glow);
             transform: translateY(-2px);
         }
 
+        #live-product-search {
+            background: var(--secondary-bg) !important;
+            border: 1px solid rgba(128,128,128,0.1) !important;
+            color: var(--text-main) !important;
+        }
+
         #live-product-search:focus {
-            border-color: var(--primary-color);
-            background: rgba(153, 255, 0, 0.05) !important;
-            box-shadow: 0 0 20px rgba(153, 255, 0, 0.1);
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 15px var(--accent-glow) !important;
         }
 
         @media (max-width: 768px) {
@@ -240,26 +279,28 @@ function setupStyles() {
             background: var(--card-bg);
             border-radius: 12px;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(128,128,128,0.05);
             transition: var(--transition-smooth);
             position: relative;
             cursor: pointer;
+            color: var(--text-main);
         }
 
         .product-card:hover {
             transform: translateY(-10px);
             border-color: var(--primary-color);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
         }
 
         .product-img {
             height: 250px;
-            background: #111;
+            background: radial-gradient(circle at center, rgba(128,128,128,0.05) 0%, transparent 70%);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
-            padding: 20px;
+            padding: 25px;
+            border-bottom: 1px solid rgba(128,128,128,0.02);
         }
 
         .p-img {
@@ -267,10 +308,16 @@ function setupStyles() {
             max-height: 100%;
             object-fit: contain;
             transition: var(--transition-smooth);
+            mix-blend-mode: multiply; /* Better for white backgrounds on light or dark */
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1));
+        }
+
+        body:not(.light-mode) .p-img {
+            mix-blend-mode: lighten; /* Fallback for dark mode if images have black background */
         }
 
         .product-card:hover .p-img {
-            transform: scale(1.1);
+            transform: scale(1.05);
         }
 
         .product-badge {
@@ -284,6 +331,7 @@ function setupStyles() {
             padding: 5px 12px;
             border-radius: 4px;
             text-transform: uppercase;
+            z-index: 2;
         }
 
         .product-info {
@@ -292,16 +340,17 @@ function setupStyles() {
         }
 
         .product-info h3 {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-            letter-spacing: 0;
+            font-size: 1.15rem;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+            color: var(--text-main);
         }
 
         .product-info .price {
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-size: 1.4rem;
+            font-weight: 800;
             color: var(--primary-color);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .view-btn {
@@ -313,17 +362,16 @@ function setupStyles() {
             color: black;
             text-transform: uppercase;
             font-weight: 800;
-            font-size: 12px;
+            font-size: 11px;
             border-radius: 6px;
             cursor: pointer;
             transition: var(--transition-smooth);
         }
 
         .view-btn:hover {
-            background: white;
-            color: black;
-            border-color: white;
-            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+            background: var(--text-main);
+            color: var(--bg-color);
+            border-color: var(--text-main);
         }
 
         .low-stock-badge {
