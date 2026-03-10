@@ -88,6 +88,7 @@ h4 {
     flex-direction: column;
     gap: 15px;
     z-index: 1000;
+    /* Matching nav.css */
 }
 
 .whatsapp-btn,

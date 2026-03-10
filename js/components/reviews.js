@@ -133,6 +133,8 @@ function setupReviewEvents() {
                     background: '#111',
                     color: '#fff'
                 });
+            } else {
+                alert('¡Muchas gracias por tu opinión!');
             }
 
             modal.classList.remove('active');
@@ -140,6 +142,17 @@ function setupReviewEvents() {
 
         } catch (error) {
             console.error("Error submitting review:", error);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Error al enviar',
+                    text: 'Hubo un problema: ' + (error.message || 'Error desconocido'),
+                    icon: 'error',
+                    background: '#111',
+                    color: '#fff'
+                });
+            } else {
+                alert('Error al enviar: ' + error.message);
+            }
             submitBtn.disabled = false;
             submitBtn.innerText = 'Enviar Opinión';
         }
@@ -168,7 +181,8 @@ export function initReviews() {
     const container = document.getElementById('reviews-container');
     if (!container) return;
 
-    const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"), limit(6));
+    // Aumentamos el límite a 15 para el carrusel
+    const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"), limit(15));
 
     onSnapshot(q, (snapshot) => {
         const reviews = [];
@@ -185,38 +199,78 @@ export function initReviews() {
 }
 
 function renderReviews(container, reviews) {
-    // Only show top 3 for the specific request, or loop through if more
-    const topReviews = reviews.slice(0, 3);
+    const isCarousel = reviews.length >= 7;
+
+    // Si es carrusel, duplicamos los items para el efecto infinito continuo
+    const displayReviews = isCarousel ? [...reviews, ...reviews] : reviews.slice(0, 6);
 
     container.innerHTML = `
-        <div class="reviews-wrapper reveal">
+        <div class="reviews-wrapper">
             <h2 class="section-title">Opiniones de nuestros <span class="green">fieles clientes</span></h2>
-            <div class="reviews-grid">
-                ${topReviews.map(rev => `
-                    <div class="review-card">
-                        <div class="review-stars">
-                            ${Array(5).fill(0).map((_, i) => `<i class="${i < rev.rating ? 'fas' : 'far'} fa-star"></i>`).join('')}
+            <div class="reviews-viewport ${isCarousel ? 'carousel-mode' : ''}">
+                <div class="reviews-grid ${isCarousel ? 'carousel-track' : ''}">
+                    ${displayReviews.map(rev => `
+                        <div class="review-card">
+                            <div class="review-stars">
+                                ${Array(5).fill(0).map((_, i) => `<i class="${i < rev.rating ? 'fas' : 'far'} fa-star"></i>`).join('')}
+                            </div>
+                            <p class="review-text">"${rev.comment || '¡Excelente producto y atención!'}"</p>
+                            <div class="review-author">Cliente Verificado</div>
                         </div>
-                        <p class="review-text">"${rev.comment || '¡Excelente producto y atención!'}"</p>
-                        <div class="review-author">Cliente Verificado</div>
-                    </div>
-                `).join('')}
+                    `).join('')}
+                </div>
             </div>
         </div>
     `;
 
-    // Animation if GSAP is available
+    // Animation logic
     if (typeof gsap !== 'undefined') {
-        gsap.to(".review-card", {
-            scrollTrigger: {
-                trigger: ".reviews-grid",
-                start: "top 80%",
-            },
-            opacity: 1,
-            y: 0,
-            stagger: 0.2,
-            duration: 0.8,
-            ease: "power2.out",
-        });
+        if (typeof ScrollTrigger !== 'undefined') {
+            gsap.registerPlugin(ScrollTrigger);
+        }
+
+        if (isCarousel) {
+            // Lógica de Carrusel Continuo Infinito
+            const track = container.querySelector('.carousel-track');
+            const cards = container.querySelectorAll('.review-card');
+
+            // Calculamos el ancho total de la mitad de los elementos (el set original)
+            const scrollWidth = track.scrollWidth / 2;
+
+            gsap.to(track, {
+                x: -scrollWidth,
+                duration: 30, // Velocidad del carrusel
+                ease: "none",
+                repeat: -1,
+                modifiers: {
+                    x: gsap.utils.unitize(x => parseFloat(x) % scrollWidth)
+                }
+            });
+
+            // Pausar al pasar el mouse
+            track.addEventListener('mouseenter', () => gsap.getTweensOf(track).forEach(t => t.pause()));
+            track.addEventListener('mouseleave', () => gsap.getTweensOf(track).forEach(t => t.play()));
+
+        } else {
+            // Lógica de Cuadrícula Estática (GSAP Entrance)
+            gsap.from(".review-card", {
+                scrollTrigger: {
+                    trigger: ".reviews-grid",
+                    start: "top 85%",
+                },
+                opacity: 0,
+                y: 30,
+                stagger: 0.15,
+                duration: 0.8,
+                ease: "power2.out"
+            });
+        }
+
+        if (typeof ScrollTrigger !== 'undefined') {
+            setTimeout(() => ScrollTrigger.refresh(), 500);
+        }
+    } else {
+        // Fallback CSS
+        document.querySelectorAll('.review-card').forEach(el => el.style.opacity = '1');
     }
 }

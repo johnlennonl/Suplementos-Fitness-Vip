@@ -1,5 +1,10 @@
 import { openReviewModal } from './reviews.js';
 
+// Global style for SweetAlert to ensure it's on top
+const style = document.createElement('style');
+style.innerHTML = '.swal2-container { z-index: 10000 !important; }';
+document.head.appendChild(style);
+
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
 export function addToCart(product) {
@@ -99,8 +104,15 @@ export function initCart() {
         `;
         document.body.insertAdjacentHTML('beforeend', cartHtml);
 
-        document.getElementById('close-cart-sidebar').addEventListener('click', () => toggleCart(false));
-        document.getElementById('whatsapp-checkout').addEventListener('click', sendWhatsAppOrder);
+        document.getElementById('close-cart-sidebar').addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleCart(false);
+        });
+        document.getElementById('whatsapp-checkout').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            sendWhatsAppOrder();
+        });
     }
 
     // Styles are loaded via css/components/cart.css

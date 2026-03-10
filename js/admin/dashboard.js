@@ -49,8 +49,11 @@ if (logoutBtn) {
     });
 }
 
+let allCategories = [];
+
 function initDashboard() {
     loadInventory();
+    loadCategories();
     setupAddForm();
     setupSizeRowLogic();
     loadSalesHistory();
@@ -130,61 +133,78 @@ window.addSizeRow = function (label = '', price = '') {
 function loadInventory() {
     const q = query(collection(db, "products"), orderBy("name", "asc"));
 
+    // Setup search listener ONLY ONCE
+    if (!window.inventorySearchInitialized) {
+        const searchInput = document.getElementById('search-inventory');
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                const term = searchInput.value.toLowerCase().trim();
+                renderInventoryTable(allProducts.filter(p =>
+                    p.name.toLowerCase().includes(term) ||
+                    p.category.toLowerCase().includes(term)
+                ));
+            });
+        }
+        window.inventorySearchInitialized = true;
+    }
+
     onSnapshot(q, (snapshot) => {
-        const inventoryBody = document.getElementById('dashboard-inventory-body');
-        if (!inventoryBody) return;
-
-        let products = [];
-        let totalVal = 0;
-        let lowStock = 0;
-        allProducts = []; // RE-LOAD products for sale modal
-
-        inventoryBody.innerHTML = '';
-
+        allProducts = [];
         snapshot.forEach((doc) => {
-            const p = doc.data();
-            const id = doc.id;
-            const product = { id, ...p };
-            products.push(product);
-            allProducts.push(product);
-
-            // Stats
-            totalVal += (p.price * p.stock);
-            if (p.stock <= 4) lowStock++;
-
-            const statusClass = p.stock <= 4 ? 'stock-low' : 'stock-ok';
-            const statusText = p.stock <= 4 ? 'Quedan Pocos' : (p.stock <= 0 ? 'Agotado' : 'Disponible');
-
-            inventoryBody.innerHTML += `
-                <tr class="${p.stock <= 4 ? 'row-warning' : ''}">
-                    <td data-label="Producto"><strong>${p.name}</strong></td>
-                    <td data-label="Categoría">${p.category}</td>
-                    <td data-label="Precio" class="green">$${parseFloat(p.price).toFixed(2)}</td>
-                    <td data-label="Stock">
-                        <div class="stock-control">
-                            <button onclick="changeStock('${id}', ${p.stock}, -1)"><i class="fas fa-minus"></i></button>
-                            <span class="${p.stock <= 4 ? 'text-red highlight-stock' : ''}">${p.stock}</span>
-                            <button onclick="changeStock('${id}', ${p.stock}, 1)"><i class="fas fa-plus"></i></button>
-                        </div>
-                    </td>
-                    <td data-label="Estado"><span class="status-tag ${statusClass}">${statusText}</span></td>
-                    <td class="action-btns">
-                        <button class="action-btn sell-btn" title="Registrar Venta" onclick="sellProductGlobal('${id}', ${p.stock})">
-                            <i class="fas fa-cart-arrow-down"></i>
-                        </button>
-                        <button class="action-btn edit-btn" onclick="openEditModal('${id}')">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn delete-btn" onclick="deleteProductFirestore('${id}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
+            allProducts.push({ id: doc.id, ...doc.data() });
         });
 
-        checkCriticalStock(products);
-        updateStats(products.length, totalVal, lowStock);
+        const searchTerm = document.getElementById('search-inventory')?.value.toLowerCase().trim() || "";
+        const filtered = allProducts.filter(p =>
+            p.name.toLowerCase().includes(searchTerm) ||
+            p.category.toLowerCase().includes(searchTerm)
+        );
+
+        renderInventoryTable(filtered);
+
+        // Update stats with full list
+        let totalVal = allProducts.reduce((acc, p) => acc + (p.price * p.stock), 0);
+        let lowStock = allProducts.filter(p => p.stock <= 4).length;
+        updateStats(allProducts.length, totalVal, lowStock);
+        checkCriticalStock(allProducts);
+    });
+}
+
+function renderInventoryTable(products) {
+    const inventoryBody = document.getElementById('dashboard-inventory-body');
+    if (!inventoryBody) return;
+    inventoryBody.innerHTML = '';
+
+    products.forEach((p) => {
+        const statusClass = p.stock <= 4 ? 'stock-low' : 'stock-ok';
+        const statusText = p.stock <= 4 ? 'Quedan Pocos' : (p.stock <= 0 ? 'Agotado' : 'Disponible');
+
+        inventoryBody.innerHTML += `
+            <tr class="${p.stock <= 4 ? 'row-warning' : ''}">
+                <td data-label="Producto"><strong>${p.name}</strong></td>
+                <td data-label="Categoría">${p.category}</td>
+                <td data-label="Precio" class="green">$${parseFloat(p.price).toFixed(2)}</td>
+                <td data-label="Stock">
+                    <div class="stock-control">
+                        <button onclick="changeStock('${p.id}', ${p.stock}, -1)"><i class="fas fa-minus"></i></button>
+                        <span class="${p.stock <= 4 ? 'text-red highlight-stock' : ''}">${p.stock}</span>
+                        <button onclick="changeStock('${p.id}', ${p.stock}, 1)"><i class="fas fa-plus"></i></button>
+                    </div>
+                </td>
+                <td data-label="Estado"><span class="status-tag ${statusClass}">${statusText}</span></td>
+                <td class="action-btns">
+                    <button class="action-btn sell-btn" title="Registrar Venta" onclick="sellProductGlobal('${p.id}', ${p.stock})">
+                        <i class="fas fa-cart-arrow-down"></i>
+                    </button>
+                    <button class="action-btn edit-btn" onclick="openEditModal('${p.id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn delete-btn" onclick="deleteProductFirestore('${p.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
     });
 }
 
@@ -447,10 +467,19 @@ document.getElementById('sale-form').onsubmit = async (e) => {
 // Historial y WhatsApp
 async function loadSalesHistory() {
     const q = query(collection(db, "sales"), orderBy("createdAt", "desc"));
-    const container = document.getElementById('sales-history-body');
+
+    // Setup listeners ONLY ONCE
+    if (!window.salesListenersInitialized) {
+        const searchInput = document.getElementById('sales-search');
+        const dateInput = document.getElementById('sales-date-filter');
+
+        if (searchInput) searchInput.addEventListener('input', () => filterSalesHistory());
+        if (dateInput) dateInput.addEventListener('change', () => filterSalesHistory());
+
+        window.salesListenersInitialized = true;
+    }
 
     onSnapshot(q, (snapshot) => {
-        container.innerHTML = '';
         let totalRevenue = 0;
         currentSalesList = [];
 
@@ -458,27 +487,6 @@ async function loadSalesHistory() {
             const sale = { id: doc.id, ...doc.data() };
             currentSalesList.push(sale);
             totalRevenue += sale.total;
-            const date = sale.createdAt ? sale.createdAt.toDate().toLocaleDateString() : 'Procesando...';
-            const saleIdx = currentSalesList.length - 1;
-
-            container.innerHTML += `
-                <tr>
-                    <td data-label="Factura"><strong>#${sale.invoiceId}</strong></td>
-                    <td data-label="Fecha">${date}</td>
-                    <td data-label="Cliente">${sale.customerName}<br><small>${sale.customerPhone}</small></td>
-                    <td data-label="Items">${sale.items.length} productos</td>
-                    <td data-label="Pago"><span class="status-tag stock-ok">${sale.paymentMethod}</span></td>
-                    <td data-label="Total" class="green">$${sale.total.toFixed(2)}</td>
-                    <td class="action-btns">
-                        <button class="action-btn edit-btn" onclick="showSaleDetails(${saleIdx})" title="Ver Detalles">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="action-btn wa-btn" onclick="shareInvoiceByIdx(${saleIdx})" title="WhatsApp">
-                            <i class="fab fa-whatsapp"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
         });
 
         // Actualizar Ventas Totales en Dashboard con dinero REAL
@@ -488,6 +496,62 @@ async function loadSalesHistory() {
         }
 
         updateDashboardAnalytics(currentSalesList);
+        filterSalesHistory();
+    });
+}
+
+window.filterSalesHistory = function () {
+    const searchInput = document.getElementById('sales-search');
+    const dateInput = document.getElementById('sales-date-filter');
+    if (!searchInput || !dateInput) return;
+
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const dateTerm = dateInput.value;
+
+    const filtered = currentSalesList.filter(sale => {
+        const matchesSearch = sale.invoiceId.toLowerCase().includes(searchTerm) ||
+            sale.customerName.toLowerCase().includes(searchTerm) ||
+            (sale.customerPhone && sale.customerPhone.includes(searchTerm));
+
+        let matchesDate = true;
+        if (dateTerm) {
+            const saleDate = sale.createdAt ? sale.createdAt.toDate().toISOString().split('T')[0] : '';
+            matchesDate = (saleDate === dateTerm);
+        }
+
+        return matchesSearch && matchesDate;
+    });
+
+    renderSalesTable(filtered);
+};
+
+function renderSalesTable(sales) {
+    const container = document.getElementById('sales-history-body');
+    if (!container) return;
+    container.innerHTML = '';
+
+    sales.forEach((sale) => {
+        const originalIdx = currentSalesList.findIndex(s => s.id === sale.id);
+        const date = sale.createdAt ? sale.createdAt.toDate().toLocaleDateString() : 'Procesando...';
+
+        container.innerHTML += `
+            <tr>
+                <td data-label="Factura"><strong>#${sale.invoiceId}</strong></td>
+                <td data-label="Fecha">${date}</td>
+                <td data-label="Cliente">${sale.customerName}<br><small>${sale.customerPhone || ''}</small></td>
+                <td data-label="Items">${sale.items.length} productos</td>
+                <td data-label="Pago"><span class="status-tag stock-ok">${sale.paymentMethod}</span></td>
+                <td data-label="Total" class="green">$${sale.total.toFixed(2)}</td>
+                <td class="action-btns">
+                    <button class="action-btn edit-btn" onclick="showSaleDetails(${originalIdx})" title="Ver Detalles">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn wa-btn" onclick="shareInvoiceByIdx(${originalIdx})" title="WhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
     });
 }
 
@@ -850,6 +914,107 @@ window.changeStock = async function (id, currentStock, change) {
             await updateDoc(doc(db, "products", id), { stock: newStock });
         } catch (error) {
             console.error("Error updating stock:", error);
+        }
+    }
+};
+
+/**
+ * Category Management Logic
+ */
+window.openCategoryModal = function () {
+    document.getElementById('category-modal').style.display = 'block';
+};
+
+async function loadCategories() {
+    const q = query(collection(db, "categories"), orderBy("name", "asc"));
+    onSnapshot(q, async (snapshot) => {
+        if (snapshot.empty) {
+            // Auto-seed initial categories for the user
+            const defaults = ["Proteínas", "Creatinas", "Pre-entreno", "Aminoácidos"];
+            for (const name of defaults) {
+                await addDoc(collection(db, "categories"), { name });
+            }
+            return; // onSnapshot will fire again with new data
+        }
+
+        allCategories = [];
+        snapshot.forEach((doc) => {
+            allCategories.push({ id: doc.id, ...doc.data() });
+        });
+        updateCategoryUI();
+    });
+}
+
+function updateCategoryUI() {
+    const select = document.getElementById('p-category');
+    const manageList = document.getElementById('categories-manage-list');
+
+    if (select) {
+        select.innerHTML = '<option value="">Seleccionar categoría...</option>';
+        allCategories.forEach(cat => {
+            select.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+        });
+    }
+
+    if (manageList) {
+        manageList.innerHTML = allCategories.length > 0 ? allCategories.map(cat => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; border:1px solid rgba(255,255,255,0.05);">
+                <span style="color:#fff; font-weight:600;">${cat.name}</span>
+                <button onclick="deleteCategoryFirestore('${cat.id}', '${cat.name}')" style="background:none; border:none; color:#ff4444; cursor:pointer; padding:5px;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `).join('') : '<p style="color:#666; font-size:13px; text-align:center;">No hay categorías creadas.</p>';
+    }
+}
+
+window.addCategoryFirestore = async function () {
+    const input = document.getElementById('new-category-name');
+    const name = input.value.trim();
+
+    if (!name) return;
+
+    if (allCategories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+        Swal.fire('Error', 'Esa categoría ya existe', 'error');
+        return;
+    }
+
+    try {
+        await addDoc(collection(db, "categories"), { name });
+        input.value = '';
+        Swal.fire({
+            title: 'Categoría Añadida',
+            icon: 'success',
+            toast: true,
+            position: 'bottom-end',
+            showConfirmButton: false,
+            timer: 2000,
+            background: '#111',
+            color: '#fff'
+        });
+    } catch (error) {
+        console.error("Error adding category:", error);
+    }
+};
+
+window.deleteCategoryFirestore = async function (id, name) {
+    const { isConfirmed } = await Swal.fire({
+        title: '¿Eliminar Categoría?',
+        text: `Se eliminará "${name}". Los productos existentes no se borrarán pero perderán su categoría.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ff4444',
+        cancelButtonColor: '#333',
+        confirmButtonText: 'Sí, eliminar',
+        background: '#111',
+        color: '#fff'
+    });
+
+    if (isConfirmed) {
+        try {
+            await deleteDoc(doc(db, "categories", id));
+        } catch (error) {
+            console.error("Error deleting category:", error);
         }
     }
 };

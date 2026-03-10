@@ -36,6 +36,8 @@
                 <p>Resumen general de tu negocio hoy.</p>
             </div>
             <div class="header-actions" style="display: flex; gap: 10px;">
+                <button class="add-btn" onclick="openCategoryModal()" style="background:#444; color:white;"><i
+                        class="fas fa-tags"></i> Categorías</button>
                 <button class="add-btn" onclick="openSaleModal()" style="background:#25D366;"><i
                         class="fas fa-shopping-cart"></i> Nueva Venta</button>
                 <button class="add-btn" onclick="openAddModal()"><i class="fas fa-plus"></i> Añadir Producto</button>
@@ -142,35 +144,40 @@
 
         <div id="section-sales" style="display: none;">
             <div class="inventory-card">
-                <div class="table-actions" style="display: flex; gap: 15px;">
-                    <button class="add-btn" onclick="exportSalesToExcel()" style="background:#1d6f42;">
-                        <i class="fas fa-file-excel"></i> Exportar
-                    </button>
-                    <input type="date" id="sales-date-filter"
-                        style="background:#111; border:1px solid #333; color:white; padding:8px; border-radius:6px;">
-                    <div class="search-box" style="width: 250px;">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="sales-search" placeholder="Buscar factura...">
+                <div class="card-header"
+                    style="display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button class="add-btn" onclick="exportSalesToExcel()"
+                            style="background:#25D366; padding: 10px 20px; height: 45px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-file-excel"></i> Exportar
+                        </button>
+                        <input type="date" id="sales-date-filter"
+                            style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); color:white; padding:10px; border-radius:10px; height: 45px; outline: none;">
+                    </div>
+                    <div class="search-box" style="width: 350px; margin: 0;">
+                        <i class="fas fa-search" style="top: 15px;"></i>
+                        <input type="text" id="sales-search" placeholder="Buscar factura, cliente o teléfono..."
+                            style="padding: 12px 15px 12px 45px;">
                     </div>
                 </div>
-            </div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Factura #</th>
-                            <th>Fecha</th>
-                            <th>Cliente</th>
-                            <th>Items</th>
-                            <th>Pago</th>
-                            <th>Total</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="sales-history-body">
-                        <!-- Ventas cargadas dinámicamente -->
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Factura #</th>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Items</th>
+                                <th>Pago</th>
+                                <th>Total</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-history-body">
+                            <!-- Ventas cargadas dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
@@ -191,11 +198,8 @@
                     </div>
                     <div class="form-group">
                         <label>Categoría</label>
-                        <select id="p-category">
-                            <option value="Proteínas">Proteínas</option>
-                            <option value="Creatinas">Creatinas</option>
-                            <option value="Pre-entreno">Pre-entreno</option>
-                            <option value="Aminoácidos">Aminoácidos</option>
+                        <select id="p-category" required>
+                            <option value="">Cargando...</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1154,6 +1158,27 @@
                     style="flex:1; margin:0; background:#25D366; color:white; border:none;">
                     <i class="fab fa-whatsapp"></i> Re-enviar Factura
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Gestión de Categorías -->
+    <div id="category-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px !important;">
+            <div class="modal-header">
+                <h2>Gestionar <span class="green">Categorías</span></h2>
+                <span class="close-modal" onclick="document.getElementById('category-modal').style.display='none'"
+                    style="cursor:pointer;">&times;</span>
+            </div>
+            <div style="margin-top:20px;">
+                <div class="form-group" style="margin-bottom:20px; display:flex; gap:10px;">
+                    <input type="text" id="new-category-name" placeholder="Nueva categoría (ej: Omega 3)">
+                    <button class="add-btn" onclick="addCategoryFirestore()" style="padding:10px 20px;">Añadir</button>
+                </div>
+                <div id="categories-manage-list"
+                    style="display:flex; flex-direction:column; gap:10px; max-height:300px; overflow-y:auto; padding:5px;">
+                    <!-- Lista de categorías dinámicas -->
+                </div>
             </div>
         </div>
     </div>

@@ -12,43 +12,32 @@ export function initProducts() {
 }
 
 function renderCategories(container) {
-    const categories = [
-        "Todos",
-        "Pre-entreno",
-        "Creatinas",
-        "Proteínas",
-        "Aminoácidos",
-    ];
+    const q = query(collection(db, "categories"), orderBy("name", "asc"));
 
-    container.innerHTML = `
-        <div class="categories-wrapper reveal">
-            <h2 class="section-title">Nuestras <span class="green">Categorías</span></h2>
-            <div class="category-list">
-                ${categories.map((cat) => `<button class="category-btn ${cat === "Todos" ? "active" : ""}" data-category="${cat}">${cat}</button>`).join("")}
+    onSnapshot(q, (snapshot) => {
+        const categories = ["Todos"];
+        snapshot.forEach(doc => categories.push(doc.data().name));
+
+        container.innerHTML = `
+            <div class="categories-wrapper" style="opacity: 1; transform: none; text-align: center; margin-bottom: 20px;">
+                <h2 class="section-title" style="margin-bottom: 25px; font-size: clamp(2.5rem, 5vw, 4rem);">Explora Nuestro <span class="green">Catálogo</span></h2>
+                <div class="category-list">
+                    ${categories.map((cat) => `<button class="category-btn ${cat === "Todos" ? "active" : ""}" data-category="${cat}">${cat}</button>`).join("")}
+                </div>
             </div>
-        </div>
-    `;
+        `;
 
-    // Category Filter Logic
-    const btns = container.querySelectorAll(".category-btn");
-    btns.forEach((btn) => {
-        btn.addEventListener("click", () => {
-            btns.forEach((b) => b.classList.remove("active"));
-            btn.classList.add("active");
-            filterProducts(btn.dataset.category);
+        // Re-attach listeners
+        const btns = container.querySelectorAll(".category-btn");
+        btns.forEach((btn) => {
+            btn.addEventListener("click", () => {
+                btns.forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
+                filterProducts(btn.dataset.category);
+            });
         });
-    });
 
-    // Animate categories
-    gsap.to(".categories-wrapper", {
-        scrollTrigger: {
-            trigger: ".categories-wrapper",
-            start: "top 90%",
-        },
-        opacity: 1,
-        y: 0,
-        duration: 1,
-        ease: "power2.out",
+        // gsap animation here if needed (already in logic below)
     });
 }
 
@@ -64,61 +53,84 @@ function renderProducts(container, filter = "Todos") {
 
         const filtered = filter === "Todos" ? products : products.filter((p) => p.category === filter);
 
-        if (filtered.length === 0) {
-            container.innerHTML = `<p style="text-align:center; padding: 100px; color: #666; font-weight: 600;">No hay productos disponibles en esta categoría.</p>`;
-            return;
-        }
-
         container.innerHTML = `
-            <div class="product-grid">
-                ${filtered
-                .map(
-                    (product) => {
-                        const lowStock = product.stock > 0 && product.stock <= 4;
-                        return `
-                        <div class="product-card reveal">
-                            <div class="product-img">
-                                <img src="${product.img}" alt="${product.name}" class="p-img">
-                                <div class="product-badge">${product.category}</div>
-                                ${lowStock ? `<div class="low-stock-badge">⚠️ QUEDAN POCOS</div>` : ""}
-                                ${product.stock <= 0 ? `<div class="out-of-stock-badge">AGOTADO</div>` : ""}
-                            </div>
-                            <div class="product-info">
-                                <h3>${product.name}</h3>
-                                <p class="price">$${parseFloat(product.price).toFixed(2)}</p>
-                                <button class="view-btn">Ver Producto</button>
-                            </div>
-                        </div>
-                    `}
-                )
-                .join("")}
+            <div class="products-header" style="text-align: center; margin-bottom: 30px; opacity: 1; transform: none;">
+                <div class="products-search-wrapper" style="max-width: 450px; margin: 0 auto; position: relative;">
+                    <i class="fas fa-search" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--primary-color); opacity: 0.7;"></i>
+                    <input type="text" id="live-product-search" placeholder="Buscar por nombre (ej: Creatina)..." 
+                        style="width: 100%; padding: 14px 15px 14px 50px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; color: white; outline: none; font-family: inherit; transition: var(--transition-smooth); font-size: 0.95rem;">
+                </div>
+            </div>
+            <div class="product-grid" id="main-product-grid">
+                ${renderProductCards(filtered)}
             </div>
         `;
-        // Add click listeners to open product detail view
-        // The 'encodedMessage' variable is not defined in this scope.
-        // Assuming this line is intended to be part of a larger change or a placeholder.
-        // For now, it's commented out to maintain syntactical correctness.
-        // const whatsappUrl = `https://wa.me/584126581304?text=${encodedMessage}`;
-        const cards = container.querySelectorAll('.product-card');
-        cards.forEach((card, idx) => {
-            const product = filtered[idx];
-            card.addEventListener('click', (e) => {
-                showProductDetail(product);
+
+        // Local variable to store current filtered set for search
+        let currentProducts = [...filtered];
+
+        const attachCardListeners = (targetProducts) => {
+            const grid = document.getElementById('main-product-grid');
+            const cards = grid.querySelectorAll('.product-card');
+            cards.forEach((card, idx) => {
+                card.addEventListener('click', () => {
+                    showProductDetail(targetProducts[idx]);
+                });
             });
-        });
-        // Animate new cards with ScrollTrigger
-        gsap.to(".product-card", {
-            scrollTrigger: {
-                trigger: ".product-grid",
-                start: "top 80%",
-            },
-            opacity: 1,
-            y: 0,
-            stagger: 0.1,
-            duration: 0.8,
-            ease: "power2.out",
-        });
+
+            // Animate new cards
+            gsap.fromTo(cards,
+                { opacity: 0, y: 30 },
+                {
+                    opacity: 1,
+                    y: 0,
+                    stagger: 0.05,
+                    duration: 0.5,
+                    ease: "power2.out",
+                    overwrite: true
+                }
+            );
+        };
+
+        // Initial listeners
+        attachCardListeners(currentProducts);
+
+        // Live Search Logic
+        const searchInput = document.getElementById('live-product-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase().trim();
+                const searchFiltered = filtered.filter(p => p.name.toLowerCase().includes(term));
+                document.getElementById('main-product-grid').innerHTML = renderProductCards(searchFiltered);
+                attachCardListeners(searchFiltered);
+            });
+        }
     });
+}
+
+function renderProductCards(products) {
+    if (products.length === 0) {
+        return `<p style="text-align:center; padding: 100px; color: #666; font-weight: 600; grid-column: 1 / -1;">No se encontraron productos que coincidan con tu búsqueda.</p>`;
+    }
+
+    return products.map((product) => {
+        const lowStock = product.stock > 0 && product.stock <= 4;
+        return `
+            <div class="product-card reveal">
+                <div class="product-img">
+                    <img src="${product.img}" alt="${product.name}" class="p-img">
+                    <div class="product-badge">${product.category}</div>
+                    ${lowStock ? `<div class="low-stock-badge">⚠️ QUEDAN POCOS</div>` : ""}
+                    ${product.stock <= 0 ? `<div class="out-of-stock-badge">AGOTADO</div>` : ""}
+                </div>
+                <div class="product-info">
+                    <h3>${product.name}</h3>
+                    <p class="price">$${parseFloat(product.price).toFixed(2)}</p>
+                    <button class="view-btn">Ver Producto</button>
+                </div>
+            </div>
+        `;
+    }).join("");
 }
 
 function filterProducts(category) {
@@ -145,6 +157,32 @@ function setupStyles() {
             gap: 15px;
             flex-wrap: wrap;
             margin-bottom: 30px;
+            padding: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .category-list {
+                justify-content: flex-start !important;
+                flex-wrap: nowrap !important;
+                overflow-x: auto !important;
+                padding: 10px 20px !important;
+                gap: 10px !important;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                margin: 0 -20px 20px -20px !important;
+            }
+            .category-list::-webkit-scrollbar {
+                display: none;
+            }
+            .category-btn {
+                flex: 0 0 auto !important;
+                white-space: nowrap !important;
+                padding: 8px 18px !important;
+                font-size: 11px !important;
+            }
+            .section-title {
+                font-size: 2.2rem !important;
+            }
         }
 
         .category-btn {
@@ -159,13 +197,35 @@ function setupStyles() {
             text-transform: uppercase;
             letter-spacing: 0.05em;
             transition: var(--transition-smooth);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         .category-btn:hover, .category-btn.active {
             background: var(--primary-color);
             color: black;
             border-color: var(--primary-color);
-            box-shadow: 0 0 15px var(--accent-glow);
+            box-shadow: 0 0 20px var(--accent-glow);
+            transform: translateY(-2px);
+        }
+
+        #live-product-search:focus {
+            border-color: var(--primary-color);
+            background: rgba(153, 255, 0, 0.05) !important;
+            box-shadow: 0 0 20px rgba(153, 255, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .products-header {
+                padding: 0 15px;
+                margin-bottom: 25px !important;
+            }
+            .products-search-wrapper {
+                max-width: 100% !important;
+            }
+            .section-title {
+                font-size: 1.8rem !important;
+                margin-bottom: 20px !important;
+            }
         }
 
         .product-grid {
